@@ -65,7 +65,7 @@ export function updateOrderSummary(currentCurrency) {
 export async function sendOrder(orderData, currentCurrency) {
     const country = orderData.country;
     const isVatRegistered = !!orderData.dic;
-    
+
     const calculatePriceWithVAT = (price, country, isVatRegistered) => {
         if (country === 'CZ') {
             // Pro ČR vždy přidáváme DPH
@@ -77,7 +77,7 @@ export async function sendOrder(orderData, currentCurrency) {
         // Pro plátce DPH mimo ČR vracíme cenu bez DPH
         return price;
     };
-    
+
     const formatTaxRate = (country, isVatRegistered) => {
         if (country === 'CZ') {
             // Pro ČR vždy vracíme standardní sazbu DPH

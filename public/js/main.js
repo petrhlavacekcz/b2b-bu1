@@ -3,6 +3,7 @@ import {
     getVariantSizes,
     getVATRate,
     validateEmail,
+    validatePhoneNumber,
     getPrice,
     formatPrice,
     calculateVAT,
@@ -235,6 +236,11 @@ function showOrderPreview() {
         return;
     }
 
+    if (!validatePhoneNumber(orderData.phone)) {
+        alert("Please enter a valid phone number (minimum 9 digits, allowed characters: +, -, (, )).");
+        return;
+    }
+
     const vatRate = getVATRate(orderData.country, orderData.isVatRegistered);
     const vatAmount = calculateVAT(
         orderData.totalPrice,
@@ -357,6 +363,15 @@ window.addEventListener("load", () => {
         if (!validateEmail(this.value)) {
             this.classList.add("border-red-500");
             alert("Please enter a valid email address.");
+        } else {
+            this.classList.remove("border-red-500");
+        }
+    });
+
+    document.getElementById("phone").addEventListener("blur", function () {
+        if (!validatePhoneNumber(this.value)) {
+            this.classList.add("border-red-500");
+            alert("Please enter a valid phone number (minimum 9 digits, allowed characters: +, -, (, )).");
         } else {
             this.classList.remove("border-red-500");
         }
