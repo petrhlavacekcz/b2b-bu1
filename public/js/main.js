@@ -328,19 +328,28 @@ function updateVATDisplay() {
 
 // Event Listeners
 window.addEventListener("load", () => {
-    const validPasswords = ["bu1b2bheslo", "Sportfotbal5?", "Sali34:", "PartnerBU1?"];  
-    const enteredPassword = prompt("Prosím zadejte přidělené heslo:");
+    const validPasswords = ["bu1b2bheslo", "Sportfotbal5?", "Sali34:", "PartnerBU1?"];  // Replace with your actual passwords
+    const passwordModal = document.getElementById("passwordModal");
+    const passwordInput = document.getElementById("passwordInput");
+    const submitPassword = document.getElementById("submitPassword");
+    const passwordError = document.getElementById("passwordError");
+    const mainContent = document.getElementById("mainContent");
 
-    if (!validPasswords.includes(enteredPassword)) {
-        alert("Nesprávné heslo. Pokud máte problém s přihlášením, kontaktujte nás na bu1@bu1.cz.");
-        // Stop further loading of the page by returning early
-        window.location.href = "https://bu1sport.com";
-        return;
-    } else {
-        console.log("Access granted");
-        // Proceed with loading the page
-        populateTable();  // Ensure this is after the password check
-    }
+    // Show the modal when the page loads
+    passwordModal.classList.remove("hidden");
+
+    // Handle password submission
+    submitPassword.addEventListener("click", function () {
+        const enteredPassword = passwordInput.value;
+
+        if (!validPasswords.includes(enteredPassword)) {
+            passwordError.classList.remove("hidden");
+        } else {
+            passwordError.classList.add("hidden");
+            passwordModal.classList.add("hidden");  // Hide the modal
+            mainContent.classList.remove("hidden");  // Show the main content
+        }
+    });
 });
 
 window.addEventListener("load", () => {
