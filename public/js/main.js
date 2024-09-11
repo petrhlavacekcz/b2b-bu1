@@ -328,6 +328,21 @@ function updateVATDisplay() {
 
 // Event Listeners
 window.addEventListener("load", () => {
+    const validPasswords = ["bu1b2bheslo", "Sportfotbal5?", "Sali34:", "PartnerBU1?"];  
+    const enteredPassword = prompt("Prosím zadejte přidělené heslo:");
+
+    if (!validPasswords.includes(enteredPassword)) {
+        alert("Nesprávné heslo. Pokud máte problém s přihlášením, kontaktujte nás na bu1@bu1.cz.");
+        // Stop further loading of the page by returning early
+        return;
+    } else {
+        console.log("Access granted");
+        // Proceed with loading the page
+        populateTable();  // Ensure this is after the password check
+    }
+});
+
+window.addEventListener("load", () => {
     console.log("Window loaded");
     populateTable();
 

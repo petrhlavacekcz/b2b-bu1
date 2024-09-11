@@ -1,65 +1,85 @@
-import { VAT_RATES, getVATRate, calculateVAT, formatPrice } from './utils.js';
-import { showOrderResult } from './domManipulation.js';
+import { VAT_RATES, getVATRate, calculateVAT, formatPrice } from "./utils.js";
+import { showOrderResult } from "./domManipulation.js";
 
 export function gatherOrderData() {
     const orderData = {
-        companyName: document.getElementById('companyName').value,
-        ico: document.getElementById('ico').value,
-        dic: document.getElementById('dic').value,
-        street: document.getElementById('street').value,
-        city: document.getElementById('city').value,
-        postalCode: document.getElementById('postalCode').value,
-        country: document.getElementById('country').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
-        isVatRegistered: !!document.getElementById('dic').value,
+        companyName: document.getElementById("companyName").value,
+        ico: document.getElementById("ico").value,
+        dic: document.getElementById("dic").value,
+        street: document.getElementById("street").value,
+        city: document.getElementById("city").value,
+        postalCode: document.getElementById("postalCode").value,
+        country: document.getElementById("country").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        isVatRegistered: !!document.getElementById("dic").value,
         products: [],
         totalPrice: 0,
         totalQuantity: 0,
         seniorQuantity: 0,
-        juniorQuantity: 0
+        juniorQuantity: 0,
     };
 
-    document.querySelectorAll('#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]').forEach(input => {
-        const quantity = parseInt(input.value);
-        if (quantity > 0) {
-            const productId = input.dataset.productId;
-            const size = input.dataset.size;
-            const price = parseFloat(input.dataset.price);
-            const productName = input.closest('tr').querySelector('td:first-child .text-sm.font-medium').textContent;
-            orderData.products.push({
-                productId,
-                productName,
-                size,
-                quantity,
-                price
-            });
-            orderData.totalPrice += quantity * price;
-            orderData.totalQuantity += quantity;
-            if (parseFloat(size) >= 7) {
-                orderData.seniorQuantity += quantity;
-            } else {
-                orderData.juniorQuantity += quantity;
+    document
+        .querySelectorAll(
+            '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]',
+        )
+        .forEach((input) => {
+            const quantity = parseInt(input.value);
+            if (quantity > 0) {
+                const productId = input.dataset.productId;
+                const size = input.dataset.size;
+                const price = parseFloat(input.dataset.price);
+                const productName = input
+                    .closest("tr")
+                    .querySelector(
+                        "td:first-child .text-sm.font-medium",
+                    ).textContent;
+                orderData.products.push({
+                    productId,
+                    productName,
+                    size,
+                    quantity,
+                    price,
+                });
+                orderData.totalPrice += quantity * price;
+                orderData.totalQuantity += quantity;
+                if (parseFloat(size) >= 7) {
+                    orderData.seniorQuantity += quantity;
+                } else {
+                    orderData.juniorQuantity += quantity;
+                }
             }
-        }
-    });
+        });
 
     return orderData;
 }
 
 export function updateOrderSummary(currentCurrency) {
     const orderData = gatherOrderData();
-    const { totalPrice, totalQuantity, seniorQuantity, juniorQuantity } = orderData;
+    const { totalPrice, totalQuantity, seniorQuantity, juniorQuantity } =
+        orderData;
     const vatRate = getVATRate(orderData.country, orderData.isVatRegistered);
-    const vatAmount = calculateVAT(totalPrice, orderData.country, orderData.isVatRegistered);
+    const vatAmount = calculateVAT(
+        totalPrice,
+        orderData.country,
+        orderData.isVatRegistered,
+    );
     const totalWithVAT = totalPrice + vatAmount;
 
-    document.getElementById('totalPrice').textContent = formatPrice(totalPrice, currentCurrency);
-    document.getElementById('totalQuantity').textContent = totalQuantity;
-    document.getElementById('seniorQuantity').textContent = seniorQuantity;
-    document.getElementById('juniorQuantity').textContent = juniorQuantity;
-    document.getElementById('vatAmount').textContent = `${formatPrice(vatAmount, currentCurrency)} (${(vatRate * 100).toFixed(0)}%)`;
-    document.getElementById('totalWithVAT').textContent = formatPrice(totalWithVAT, currentCurrency);
+    document.getElementById("totalPrice").textContent = formatPrice(
+        totalPrice,
+        currentCurrency,
+    );
+    document.getElementById("totalQuantity").textContent = totalQuantity;
+    document.getElementById("seniorQuantity").textContent = seniorQuantity;
+    document.getElementById("juniorQuantity").textContent = juniorQuantity;
+    document.getElementById("vatAmount").textContent =
+        `${formatPrice(vatAmount, currentCurrency)} (${(vatRate * 100).toFixed(0)}%)`;
+    document.getElementById("totalWithVAT").textContent = formatPrice(
+        totalWithVAT,
+        currentCurrency,
+    );
 }
 
 export async function sendOrder(orderData, currentCurrency) {
@@ -67,9 +87,9 @@ export async function sendOrder(orderData, currentCurrency) {
     const isVatRegistered = !!orderData.dic;
 
     const calculatePriceWithVAT = (price, country, isVatRegistered) => {
-        if (country === 'CZ') {
+        if (country === "CZ") {
             // Pro ČR vždy přidáváme DPH
-            return price * (1 + VAT_RATES['CZ']);
+            return price * (1 + VAT_RATES["CZ"]);
         } else if (!isVatRegistered) {
             // Pro ostatní země přidáváme DPH, pouze pokud není plátce
             return price * (1 + (VAT_RATES[country] || 0));
@@ -79,9 +99,9 @@ export async function sendOrder(orderData, currentCurrency) {
     };
 
     const formatTaxRate = (country, isVatRegistered) => {
-        if (country === 'CZ') {
+        if (country === "CZ") {
             // Pro ČR vždy vracíme standardní sazbu DPH
-            return VAT_RATES['CZ'] * 100;
+            return VAT_RATES["CZ"] * 100;
         } else if (!isVatRegistered) {
             // Pro neplátce z jiných zemí vracíme jejich sazbu DPH
             return (VAT_RATES[country] || 0) * 100;
@@ -91,13 +111,13 @@ export async function sendOrder(orderData, currentCurrency) {
     };
 
     try {
-        const response = await fetch('/api/baselinker', {
-            method: 'POST',
+        const response = await fetch("/api/baselinker", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                method: 'addOrder',
+                method: "addOrder",
                 parameters: {
                     order_status_id: "247482",
                     custom_source_id: "42040",
@@ -128,9 +148,9 @@ export async function sendOrder(orderData, currentCurrency) {
                     invoice_country_code: country,
                     want_invoice: "1",
                     custom_extra_fields: {
-                        "60445": orderData.ico
+                        60445: orderData.ico,
                     },
-                    products: orderData.products.map(p => ({
+                    products: orderData.products.map((p) => ({
                         storage: "db",
                         storage_id: 0,
                         product_id: p.productId,
@@ -141,13 +161,17 @@ export async function sendOrder(orderData, currentCurrency) {
                         location: "",
                         warehouse_id: 0,
                         attributes: `Size: ${p.size}`,
-                        price_brutto: calculatePriceWithVAT(p.price, country, isVatRegistered),
+                        price_brutto: calculatePriceWithVAT(
+                            p.price,
+                            country,
+                            isVatRegistered,
+                        ),
                         tax_rate: formatTaxRate(country, isVatRegistered),
                         quantity: p.quantity,
-                        weight: 0
-                    }))
-                }
-            })
+                        weight: 0,
+                    })),
+                },
+            }),
         });
 
         if (!response.ok) {
@@ -156,30 +180,46 @@ export async function sendOrder(orderData, currentCurrency) {
 
         const result = await response.json();
 
-        if (result.status === 'SUCCESS') {
-            showOrderResult(true, "Vaši objednávku jsme v pořádku přijali. Během 15 minut Vám přijdou informace na uvedený e-mail.");
+        if (result.status === "SUCCESS") {
+            showOrderResult(
+                true,
+                "Vaši objednávku jsme v pořádku přijali. Během 15 minut Vám přijdou informace na uvedený e-mail.",
+            );
             clearOrder();
         } else {
-            throw new Error(`API error: ${result.error_code} - ${result.error_message}`);
+            throw new Error(
+                `API error: ${result.error_code} - ${result.error_message}`,
+            );
         }
     } catch (error) {
-        console.error('Error submitting order:', error);
-        showOrderResult(false, "Vaši objednávku se nepodařilo odeslat, prosím kontaktujte nás na e-mailu bu1@bu1.cz");
+        console.error("Error submitting order:", error);
+        showOrderResult(
+            false,
+            "Vaši objednávku se nepodařilo odeslat, prosím kontaktujte nás na e-mailu bu1@bu1.cz",
+        );
     }
 }
 
 export function clearOrder() {
-    document.querySelectorAll('#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]').forEach(input => {
-        input.value = 0;
-        const productId = input.dataset.productId;
-        const size = input.dataset.size;
-        localStorage.removeItem(`order_${productId}_${size}`);
-    });
+    document
+        .querySelectorAll(
+            '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]',
+        )
+        .forEach((input) => {
+            input.value = 0;
+            const productId = input.dataset.productId;
+            const size = input.dataset.size;
+            localStorage.removeItem(`order_${productId}_${size}`);
+        });
 
-    document.querySelectorAll('#seniorGlovesTable tbody tr, #juniorGlovesTable tbody tr').forEach(row => {
-        const orderedCell = row.querySelector('td:nth-child(3)');
-        orderedCell.querySelector('span').textContent = '0';
-    });
+    document
+        .querySelectorAll(
+            "#seniorGlovesTable tbody tr, #juniorGlovesTable tbody tr",
+        )
+        .forEach((row) => {
+            const orderedCell = row.querySelector("td:nth-child(3)");
+            orderedCell.querySelector("span").textContent = "0";
+        });
 
     updateOrderSummary();
 }
