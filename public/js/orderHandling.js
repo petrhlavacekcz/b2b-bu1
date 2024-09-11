@@ -183,7 +183,7 @@ export async function sendOrder(orderData, currentCurrency) {
         if (result.status === "SUCCESS") {
             showOrderResult(
                 true,
-                "Vaši objednávku jsme v pořádku přijali. Během 15 minut Vám přijdou informace na uvedený e-mail.",
+                "Vaši objednávku jsme v pořádku přijali. V nejbližší době bude na uvedený e-mail zaslána faktura k proplacení. Upozorňujeme, že zboží je v našem skladu rezervováno maximálně 3 pracovní dny.",
             );
             clearOrder();
         } else {

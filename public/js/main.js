@@ -227,17 +227,17 @@ async function loadCompanyInfo() {
 function showOrderPreview() {
     const orderData = gatherOrderData();
     if (orderData.products.length === 0) {
-        alert("Please select at least one product for the order.");
+        alert("Prosím vyberte alespoň jeden produkt do objednávky.");
         return;
     }
 
     if (!validateEmail(orderData.email)) {
-        alert("Please enter a valid email address.");
+        alert("Zadejte platný e-mail.");
         return;
     }
 
     if (!validatePhoneNumber(orderData.phone)) {
-        alert("Please enter a valid phone number (minimum 9 digits, allowed characters: +, -, (, )).");
+        alert("Zadejte platné telefonní číslo (minimálně 9 číslic, povolené znaky: +, -, (, )).");
         return;
     }
 
@@ -254,10 +254,10 @@ function showOrderPreview() {
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produkt</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Velikost</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Počet</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cena bez DPH</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -276,12 +276,12 @@ function showOrderPreview() {
             </tbody>
         </table>
         <div class="mt-4">
-            <p class="font-bold">Total price without VAT: ${formatPrice(orderData.totalPrice, currentCurrency)}</p>
-            <p>VAT ${(vatRate * 100).toFixed(0)}%: ${formatPrice(vatAmount, currentCurrency)}</p>
-            <p class="font-bold">Total price with VAT ${(vatRate * 100).toFixed(0)}%: ${formatPrice(totalWithVAT, currentCurrency)}</p>
-            <p>Total number of pieces: ${orderData.totalQuantity}</p>
-            <p>Number of senior pieces: ${orderData.seniorQuantity}</p>
-            <p>Number of junior pieces: ${orderData.juniorQuantity}</p>
+            <p class="font-bold">Celková cena bez DPH: ${formatPrice(orderData.totalPrice, currentCurrency)}</p>
+            <p>DPH ${(vatRate * 100).toFixed(0)}%: ${formatPrice(vatAmount, currentCurrency)}</p>
+            <p class="font-bold">Celková cena s DPH: ${formatPrice(totalWithVAT, currentCurrency)}</p>
+            <p>Celkový počet kusů: ${orderData.totalQuantity}</p>
+            <p>Počet senior kusů: ${orderData.seniorQuantity}</p>
+            <p>Počet junior kusů: ${orderData.juniorQuantity}</p>
         </div>
     `;
 
@@ -375,9 +375,25 @@ window.addEventListener("load", () => {
         .getElementById("submitOrder")
         .addEventListener("click", showOrderPreview);
 
-    document.getElementById("confirmOrder").addEventListener("click", () => {
+    document.getElementById('confirmOrder').addEventListener('click', async () => {
+        // Hide the modal title and buttons
+        document.getElementById('modalTitle').textContent = '';
+        document.getElementById('modalActions').style.display = 'none';  // Hide the action buttons
+
+        // Display the loading spinner
+        document.getElementById('modalContent').innerHTML = `
+            <div class="flex justify-center items-center">
+                <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
+                </svg>
+            </div>
+        `;
+
+        // Process the order
         const orderData = gatherOrderData();
-        sendOrder(orderData, currentCurrency);
+        await sendOrder(orderData, currentCurrency);
+
     });
 
     document

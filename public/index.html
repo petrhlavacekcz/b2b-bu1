@@ -10,6 +10,28 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        @media (max-width: 640px) {
+            .sorting-currency-wrapper {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .sorting-currency-wrapper label {
+                margin-bottom: 4px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .order-table {
+                overflow-x: auto;
+            }
+            .size-column {
+                width: auto;
+                min-width: 40px; 
+            }
+        }
+        
         .size-column {
             min-width: 60px;
             width: 60px;
@@ -85,24 +107,21 @@
 
         <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <div class="bg-white shadow-lg rounded-lg p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Objednávka</h2>
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center">
-                            <label for="sort" class="mr-2 text-sm font-medium">Řazení:</label>
-                            <select id="sort" class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                <option value="name">Název</option>
-                                <option value="priceAsc">Cena (vzestupně)</option>
-                                <option value="priceDesc">Cena (sestupně)</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center">
-                            <label for="currency" class="mr-2 text-sm font-medium">Měna:</label>
-                            <select id="currency" class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                <option value="CZK">CZK</option>
-                                <option value="EUR">EUR</option>
-                            </select>
-                        </div>
+                <div class="flex justify-between items-center mb-4 sorting-currency-wrapper">
+                    <div class="flex items-center">
+                        <label for="sort" class="mr-2 text-sm font-medium">Řazení:</label>
+                        <select id="sort" class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="name">Název</option>
+                            <option value="priceAsc">Cena (vzestupně)</option>
+                            <option value="priceDesc">Cena (sestupně)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <label for="currency" class="mr-2 text-sm font-medium">Měna:</label>
+                        <select id="currency" class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="CZK">CZK</option>
+                            <option value="EUR">EUR</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -215,7 +234,7 @@
                         <div class="col-span-1">
                             <label for="ico" class="block text-sm font-medium text-gray-700">IČO</label>
                             <input type="text" id="ico" name="ico" maxlength="8" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                            <button type="button" id="loadCompanyInfo" class="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <button type="button" id="loadCompanyInfo" class="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 Načíst data z ARES
                             </button>
                         </div>
@@ -269,8 +288,8 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <button type="button" id="submitOrder" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Odeslat objednávku
+                        <button type="button" id="submitOrder" class="inline-flex justify-center py-4 px-6 border border-transparent shadow-sm text-lg font-bold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Náhled a potvrzení objednávky
                         </button>
                     </div>
                 </form>
