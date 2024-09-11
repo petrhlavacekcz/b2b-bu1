@@ -74,8 +74,10 @@ export function showOrderResult(success, message) {
     const confirmButton = document.getElementById('confirmOrder');
     const cancelButton = document.getElementById('cancelOrder');
 
+    // Set the title based on success or failure
     modalTitle.textContent = success ? 'Objednávka úspěšně odeslána' : 'Chyba při odesílání objednávky';
-    
+
+    // Update the content of the modal
     modalContent.innerHTML = `
         <div class="text-center">
             ${success 
@@ -84,8 +86,16 @@ export function showOrderResult(success, message) {
             }
             <p class="mt-4 text-lg ${success ? 'text-green-700' : 'text-red-700'}">${message}</p>
         </div>
+        ${success ? `
+            <div class="mt-6">
+                <a href="https://www.bu1sport.com" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Přejít na oficiální stránky BU1
+                </a>
+            </div>
+        ` : ''}
     `;
 
+    // Hide the confirm button and update cancel button text
     confirmButton.style.display = 'none';
     cancelButton.textContent = 'Zavřít';
 }
