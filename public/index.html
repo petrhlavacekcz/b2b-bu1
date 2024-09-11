@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BU1 Sport - B2B Objednávka brankářských rukavic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .size-column {
+            min-width: 60px;
+            width: 60px;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f3f4f6;
+        }
+        .sticky-column {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background-color: white;
+        }
+        .order-table {
+            overflow-x: auto;
+            position: relative;
+        }
+        .order-table table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .modal-open .sticky-header,
+        .modal-open .sticky-column {
+            position: static;
+        }
+        .modal-open {
+            overflow: hidden;
+        }
+        #orderPreviewModal {
+            overflow-y: auto;
+        }
+        .category-header {
+            cursor: pointer;
+        }
+        .category-content {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 2000px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .category-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen">
+        <header class="bg-blue-600 text-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-bold">BU1 Sport - B2B Objednávka brankářských rukavic</h1>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div class="bg-white shadow-lg rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Objednávka</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <label for="sort" class="mr-2 text-sm font-medium">Řazení:</label>
+                            <select id="sort" class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="name">Název</option>
+                                <option value="priceAsc">Cena (vzestupně)</option>
+                                <option value="priceDesc">Cena (sestupně)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center">
+                            <label for="currency" class="mr-2 text-sm font-medium">Měna:</label>
+                            <select id="currency" class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="CZK">CZK</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="loading" class="text-center py-4 text-gray-600">
+<div id="spinner" class="flex justify-center items-center">
+    <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
+    </svg>
+</div>
+</div>
+                
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-2 category-header flex items-center" data-category="senior">
+                        <span class="mr-2">Brankářské rukavice - senior</span>
+                        <svg class="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </h3>
+                    <div class="category-content" data-category="senior">
+                        <div class="order-table">
+                            <table id="seniorGlovesTable" class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <!-- Table headers will be dynamically populated -->
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- Table body will be dynamically populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-2 category-header flex items-center" data-category="junior">
+                        <span class="mr-2">Brankářské rukavice - junior</span>
+                        <svg class="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </h3>
+                    <div class="category-content" data-category="junior">
+                        <div class="order-table">
+                            <table id="juniorGlovesTable" class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <!-- Table headers will be dynamically populated -->
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- Table body will be dynamically populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button id="clearOrder" aria-label="Vyčisti objednávku" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                        Vyčisti objednávku
+                    </button>
+                </div>
+            </div>
+
+            <div id="orderSummary" class="bg-white shadow-lg rounded-lg p-6 mt-6">
+                <h2 class="text-2xl font-semibold mb-4">Souhrn objednávky</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Položka</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Hodnota</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Celková cena bez DPH</td>
+                                <td id="totalPrice" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"></td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">DPH</td>
+                                <td id="vatAmount" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"></td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Celková cena s DPH</td>
+                                <td id="totalWithVAT" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"></td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Celkový počet kusů</td>
+                                <td id="totalQuantity" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"></td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Počet senior kusů</td>
+                                <td id="seniorQuantity" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"></td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Počet junior kusů</td>
+                                <td id="juniorQuantity" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white shadow-lg rounded-lg p-6 mt-6">
+                <h2 class="text-2xl font-semibold mb-4">Informace o objednávce</h2>
+                <form id="orderForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="col-span-1">
+                            <label for="ico" class="block text-sm font-medium text-gray-700">IČO</label>
+                            <input type="text" id="ico" name="ico" maxlength="8" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                            <button type="button" id="loadCompanyInfo" class="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Načíst data z ARES
+                            </button>
+                        </div>
+                        <div class="col-span-1">
+                            <label for="dic" class="block text-sm font-medium text-gray-700">DIČ (VAT ID)</label>
+                            <input type="text" id="dic" name="dic" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                            <label for="companyName" class="block text-sm font-medium text-gray-700">Název společnosti</label>
+                            <input type="text" id="companyName" name="companyName" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                            <label for="street" class="block text-sm font-medium text-gray-700">Ulice a číslo</label>
+                            <input type="text" id="street" name="street" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700">Město</label>
+                            <input type="text" id="city" name="city" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="postalCode" class="block text-sm font-medium text-gray-700">PSČ</label>
+                            <input type="text" id="postalCode" name="postalCode" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <div>
+                            <label for="country" class="block text-sm font-medium text-gray-700">Země</label>
+                            <select id="country" name="country" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                                <option value="">Vyberte zemi</option>
+                                <option value="CZ">Česká republika</option>
+                                <option value="SK">Slovensko</option>
+                                <option value="DE">Německo</option>
+                                <option value="AT">Rakousko</option>
+                                <option value="PL">Polsko</option>
+                                <option value="HU">Maďarsko</option>
+                                <option value="FR">Francie</option>
+                                <option value="IT">Itálie</option>
+                                <option value="ES">Španělsko</option>
+                                <option value="NL">Nizozemsko</option>
+                                <option value="BE">Belgie</option>
+                                <option value="SE">Švédsko</option>
+                                <option value="DK">Dánsko</option>
+                                <option value="FI">Finsko</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Telefon</label>
+                            <input type="tel" id="phone" name="phone" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                        <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                            <label for="email" class="block text-sm font-medium text-gray-700">E-mail</label>
+                            <input type="email" id="email" name="email" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="button" id="submitOrder" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Odeslat objednávku
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full">
+            <h2 id="modalTitle" class="text-2xl font-semibold mb-4">Náhled objednávky</h2>
+            <div id="modalContent" class="mb-4">
+                <!-- Obsah se bude dynamicky měnit -->
+            </div>
+            <div id="modalActions" class="flex justify-end space-x-2">
+                <button id="cancelOrder" class="px-4 py-2 bg-gray-300 text-gray-800 rounded">Zrušit</button>
+                <button id="confirmOrder" class="px-4 py-2 bg-blue-500 text-white rounded">Potvrdit objednávku</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
