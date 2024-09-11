@@ -334,6 +334,7 @@ window.addEventListener("load", () => {
     if (!validPasswords.includes(enteredPassword)) {
         alert("Nesprávné heslo. Pokud máte problém s přihlášením, kontaktujte nás na bu1@bu1.cz.");
         // Stop further loading of the page by returning early
+        window.location.href = "https://bu1sport.com";
         return;
     } else {
         console.log("Access granted");
