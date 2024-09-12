@@ -8,7 +8,7 @@ import {
     formatPrice,
     calculateVAT,
 } from "./utils.js";
-import { createGloveRow, populateTableHeader } from "./domManipulation.js";
+import { createGloveRow, populateTableHeader, showProductImage, hideProductImage } from "./domManipulation.js";
 import {
     updateOrderSummary,
     sendOrder,
@@ -27,7 +27,7 @@ async function populateTable() {
 
         allGloves = Object.entries(gloves).filter(([, product]) => {
             return Object.values(product.variants || {}).some(
-                (variant) => Object.values(variant.stock)[0] > 0,
+                (variant) => Object.values(variant.stock)[0] > 0
             );
         });
         console.log("Filtered products:", allGloves);
@@ -56,11 +56,16 @@ async function populateTable() {
 
         document
             .querySelectorAll(
-                '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]',
+                '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]'
             )
             .forEach((input) => {
                 input.addEventListener("change", saveOrderQuantity);
             });
+
+        document.querySelectorAll('.product-name').forEach(productName => {
+            productName.addEventListener('mouseenter', showProductImage);
+            productName.addEventListener('mouseleave', hideProductImage);
+        });
 
         updateOrderSummary(currentCurrency);
     } catch (error) {
