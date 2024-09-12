@@ -7,7 +7,6 @@ export function createGloveRow(productId, product, sizes, isSenior, currentCurre
     const mocPrice = getPrice(product.prices, false, currentCurrency);
     const vocPrice = getPrice(product.prices, true, currentCurrency);
 
-    // Získání URL prvního obrázku
     const imageUrl = product.images && Object.values(product.images)[0];
 
     const sizeColumns = sizes.map(size => {
@@ -56,8 +55,16 @@ export function createGloveRow(productId, product, sizes, isSenior, currentCurre
 
     row.innerHTML = `
         <td class="px-2 py-2 whitespace-nowrap sticky-column" style="left: 0; z-index: 10; min-width: 200px;">
-            <div class="text-sm font-medium text-gray-900 product-name" data-product-id="${productId}" data-image-url="${imageUrl || ''}">
-                ${product.text_fields.name || ''}
+            <div class="flex items-center">
+                <div class="text-sm font-medium text-gray-900 mr-2">${product.text_fields.name || ''}</div>
+                ${imageUrl ? `
+                    <button class="product-image-button" data-product-id="${productId}" data-image-url="${imageUrl}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                ` : ''}
             </div>
             <div class="text-xs text-gray-500">VOC: ${formatPrice(vocPrice, currentCurrency)} bez DPH</div>
             <div class="text-xs text-gray-500">MOC: ${formatPrice(mocPrice, currentCurrency)} s DPH</div>
@@ -86,8 +93,13 @@ export function populateTableHeader(tableId, sizes) {
 }
 
 export function showProductImage(event) {
-    const imageUrl = event.target.dataset.imageUrl;
+    const button = event.currentTarget;
+    const imageUrl = button.dataset.imageUrl;
     if (!imageUrl || imageUrl === 'undefined' || imageUrl === '') return;
+
+    if (activeImageModal) {
+        hideProductImage();
+    }
 
     const imageModal = document.createElement('div');
     imageModal.className = 'product-image-modal';
@@ -120,13 +132,12 @@ export function hideProductImage() {
 
 function updateImagePosition(event) {
     if (activeImageModal) {
-        activeImageModal.style.left = `${event.pageX + 20}px`;
-        activeImageModal.style.top = `${event.pageY + 20}px`;
+        const button = event.currentTarget;
+        const rect = button.getBoundingClientRect();
+        activeImageModal.style.left = `${rect.right + 10}px`;
+        activeImageModal.style.top = `${rect.top}px`;
     }
 }
-
-// Přidejte tento globální event listener
-document.addEventListener('mousemove', updateImagePosition);
 
 export function showOrderResult(success, message) {
     const modalTitle = document.getElementById('modalTitle');
@@ -134,10 +145,8 @@ export function showOrderResult(success, message) {
     const confirmButton = document.getElementById('confirmOrder');
     const cancelButton = document.getElementById('cancelOrder');
 
-    // Set the title based on success or failure
     modalTitle.textContent = success ? 'Objednávka úspěšně odeslána' : 'Chyba při odesílání objednávky';
 
-    // Update the content of the modal
     modalContent.innerHTML = `
         <div class="text-center">
             ${success 
@@ -155,7 +164,6 @@ export function showOrderResult(success, message) {
         ` : ''}
     `;
 
-    // Hide the confirm button and update cancel button text
     confirmButton.style.display = 'none';
     cancelButton.textContent = 'Zavřít';
 }

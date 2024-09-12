@@ -62,12 +62,10 @@ async function populateTable() {
                 input.addEventListener("change", saveOrderQuantity);
             });
 
-        document.querySelectorAll('.product-name').forEach(productName => {
-            productName.addEventListener('mouseenter', showProductImage);
-            productName.addEventListener('mouseleave', hideProductImage);
-        });
-
         updateOrderSummary(currentCurrency);
+
+        // Přidejte toto volání zde
+        addImageButtonListeners();
     } catch (error) {
         console.error("Error populating table:", error);
         document.getElementById("loading").textContent =
@@ -141,6 +139,18 @@ function sortAndDisplayGloves() {
     });
 
     updateOrderSummary(currentCurrency);
+}
+
+function addImageButtonListeners() {
+    console.log('Adding image button listeners');
+    document.querySelectorAll('.product-image-button').forEach(button => {
+        button.addEventListener('mouseenter', showProductImage);
+        button.addEventListener('mouseleave', hideProductImage);
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            showProductImage(event);
+        });
+    });
 }
 
 function saveOrderQuantity(event) {
@@ -437,3 +447,5 @@ window.addEventListener("load", () => {
 
     document.getElementById("clearOrder").addEventListener("click", clearOrder);
 });
+
+
