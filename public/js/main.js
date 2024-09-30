@@ -343,7 +343,7 @@ function updateVATDisplay() {
 
 // Event Listeners
 window.addEventListener("load", () => {
-    const validPasswords = ["bu1b2bheslo", "Sportfotbal5?", "Sali34:", "PartnerBU1?", "?FutbalShop92", "Gol1Sport!?", "HSportB2b?",];  // Replace with your actual passwords
+    const validPasswords = ["bu1b2bheslo", "Sportfotbal5?", "Sali34:", "PartnerBU1?", "?FutbalShop92", "Gol1Sport!?", "HSportB2b?", "JanalikB2B?",];  // Replace with your actual passwords
     const passwordModal = document.getElementById("passwordModal");
     const passwordInput = document.getElementById("passwordInput");
     const submitPassword = document.getElementById("submitPassword");

@@ -31,6 +31,9 @@ export function gatherOrderData() {
                 const productId = input.dataset.productId;
                 const size = input.dataset.size;
                 const price = parseFloat(input.dataset.price);
+                const variantId = input.dataset.variantId;
+                const sku = input.dataset.sku;
+                const ean = input.dataset.ean;
                 const productName = input
                     .closest("tr")
                     .querySelector(
@@ -42,6 +45,9 @@ export function gatherOrderData() {
                     size,
                     quantity,
                     price,
+                    variantId,
+                    sku,
+                    ean,
                 });
                 orderData.totalPrice += quantity * price;
                 orderData.totalQuantity += quantity;
@@ -155,10 +161,10 @@ export async function sendOrder(orderData, currentCurrency) {
                         storage: "db",
                         storage_id: 0,
                         product_id: p.productId,
-                        variant_id: 0,
+                        variant_id: parseInt(p.variantId),
                         name: `${p.productName} - Size ${p.size}`,
-                        sku: "",
-                        ean: "",
+                        sku: p.sku,
+                        ean: p.ean,
                         location: "",
                         warehouse_id: 0,
                         attributes: `Size: ${p.size}`,
