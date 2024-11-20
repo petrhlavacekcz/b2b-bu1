@@ -1,6 +1,6 @@
-import { INVENTORY_ID, CATEGORY_ID } from './config.js';
+import { INVENTORY_ID, CATEGORY_ID_SENIOR, CATEGORY_ID_JUNIOR } from './config.js';
 
-export async function fetchProductList() {
+export async function fetchProductList(type = 'senior') {
     const response = await fetch('/api/baselinker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -8,7 +8,7 @@ export async function fetchProductList() {
             method: 'getInventoryProductsList',
             parameters: {
                 inventory_id: INVENTORY_ID,
-                filter_category_id: CATEGORY_ID
+                filter_category_id: type === 'senior' ? CATEGORY_ID_SENIOR : CATEGORY_ID_JUNIOR
             }
         })
     });
@@ -50,12 +50,12 @@ export async function fetchProductData(productIds) {
     return data.products || {};
 }
 
-export async function fetchGloves() {
+export async function fetchGloves(type = 'senior') {
     try {
         console.log('Fetching product list...');
-        const productList = await fetchProductList();
+        const productList = await fetchProductList(type);
         console.log('Product list response:', productList);
-        
+
         const productIds = Object.keys(productList);
         console.log('Number of products:', productIds.length);
 
@@ -66,7 +66,7 @@ export async function fetchGloves() {
         console.log('Fetching product data...');
         const productData = await fetchProductData(productIds);
         console.log('Product data response:', productData);
-        
+
         return productData;
     } catch (error) {
         console.error(`Error loading data: ${error.message}`);

@@ -17,12 +17,6 @@ export function createGloveRow(
 
     const sizeColumns = sizes
         .map((size) => {
-            if (
-                (isSenior && parseFloat(size) < 7) ||
-                (!isSenior && parseFloat(size) >= 7)
-            ) {
-                return "";
-            }
             const variant = Object.entries(product.variants).find(
                 ([, v]) => v.name === size.toString(),
             );

@@ -8,7 +8,12 @@ import {
     formatPrice,
     calculateVAT,
 } from "./utils.js";
-import { createGloveRow, populateTableHeader, showProductImage, hideProductImage } from "./domManipulation.js";
+import {
+    createGloveRow,
+    populateTableHeader,
+    showProductImage,
+    hideProductImage,
+} from "./domManipulation.js";
 import {
     updateOrderSummary,
     sendOrder,
@@ -16,32 +21,50 @@ import {
     gatherOrderData,
 } from "./orderHandling.js";
 
-let allGloves = [];
+let allGloves = {
+    senior: [],
+    junior: [],
+};
 let currentCurrency = "CZK";
 
 async function populateTable() {
     try {
         console.log("Starting data loading...");
-        const gloves = await fetchGloves();
-        console.log("Data loaded:", gloves);
+        const seniorGloves = await fetchGloves("senior");
+        const juniorGloves = await fetchGloves("junior");
+        console.log("Senior data loaded:", seniorGloves);
+        console.log("Junior data loaded:", juniorGloves);
 
-        allGloves = Object.entries(gloves).filter(([, product]) => {
-            return Object.values(product.variants || {}).some(
-                (variant) => Object.values(variant.stock)[0] > 0
-            );
-        });
-        console.log("Filtered products:", allGloves);
+        allGloves.senior = Object.entries(seniorGloves).filter(
+            ([, product]) => {
+                return Object.values(product.variants || {}).some(
+                    (variant) => Object.values(variant.stock)[0] > 0,
+                );
+            },
+        );
+        allGloves.junior = Object.entries(juniorGloves).filter(
+            ([, product]) => {
+                return Object.values(product.variants || {}).some(
+                    (variant) => Object.values(variant.stock)[0] > 0,
+                );
+            },
+        );
+        console.log("Filtered senior products:", allGloves.senior);
+        console.log("Filtered junior products:", allGloves.junior);
 
-        const sizes = getVariantSizes(Object.fromEntries(allGloves));
-        console.log("Available sizes:", sizes);
-
-        const seniorSizes = sizes.filter((size) => parseFloat(size) >= 7);
-        const juniorSizes = sizes.filter((size) => parseFloat(size) < 7);
+        const seniorSizes = getVariantSizes(
+            Object.fromEntries(allGloves.senior),
+        );
+        const juniorSizes = getVariantSizes(
+            Object.fromEntries(allGloves.junior),
+        );
+        console.log("Available senior sizes:", seniorSizes);
+        console.log("Available junior sizes:", juniorSizes);
 
         populateTableHeader("seniorGlovesTable", seniorSizes);
         populateTableHeader("juniorGlovesTable", juniorSizes);
 
-        if (allGloves.length === 0) {
+        if (allGloves.senior.length === 0 && allGloves.junior.length === 0) {
             document.getElementById("loading").textContent =
                 "No data to display.";
             return;
@@ -56,15 +79,13 @@ async function populateTable() {
 
         document
             .querySelectorAll(
-                '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]'
+                '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]',
             )
             .forEach((input) => {
                 input.addEventListener("change", saveOrderQuantity);
             });
 
         updateOrderSummary(currentCurrency);
-
-        // Přidejte toto volání zde
         addImageButtonListeners();
     } catch (error) {
         console.error("Error populating table:", error);
@@ -75,11 +96,9 @@ async function populateTable() {
 
 function sortAndDisplayGloves() {
     const sortValue = document.getElementById("sort").value;
-    const sizes = getVariantSizes(Object.fromEntries(allGloves));
-    const seniorSizes = sizes.filter((size) => parseFloat(size) >= 7);
-    const juniorSizes = sizes.filter((size) => parseFloat(size) < 7);
 
-    allGloves.sort(([, a], [, b]) => {
+    // Sort senior gloves
+    allGloves.senior.sort(([, a], [, b]) => {
         if (sortValue === "name") {
             return (a.text_fields.name || "").localeCompare(
                 b.text_fields.name || "",
@@ -91,48 +110,38 @@ function sortAndDisplayGloves() {
         }
     });
 
-    const seniorGloves = allGloves.filter(([, product]) => {
-        return Object.values(product.variants || {}).some((variant) => {
-            const size = parseFloat(
-                variant.name.split(" ").pop().replace(",", "."),
+    // Sort junior gloves
+    allGloves.junior.sort(([, a], [, b]) => {
+        if (sortValue === "name") {
+            return (a.text_fields.name || "").localeCompare(
+                b.text_fields.name || "",
             );
-            return size >= 7;
-        });
+        } else if (sortValue === "priceAsc" || sortValue === "priceDesc") {
+            const priceA = getPrice(a.prices, true, currentCurrency);
+            const priceB = getPrice(b.prices, true, currentCurrency);
+            return sortValue === "priceAsc" ? priceA - priceB : priceB - priceA;
+        }
     });
 
-    const juniorGloves = allGloves.filter(([, product]) => {
-        return Object.values(product.variants || {}).some((variant) => {
-            const size = parseFloat(
-                variant.name.split(" ").pop().replace(",", "."),
-            );
-            return size < 7;
-        });
-    });
+    populateGlovesTable("seniorGlovesTable", allGloves.senior);
+    populateGlovesTable("juniorGlovesTable", allGloves.junior);
+}
 
-    const seniorTbody = document.querySelector("#seniorGlovesTable tbody");
-    const juniorTbody = document.querySelector("#juniorGlovesTable tbody");
-    seniorTbody.innerHTML = "";
-    juniorTbody.innerHTML = "";
+function populateGlovesTable(tableId, gloves) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    tbody.innerHTML = "";
 
-    seniorGloves.forEach(([productId, product]) => {
-        seniorTbody.appendChild(
+    const glovesObj = Object.fromEntries(gloves);
+    const sizes = getVariantSizes(glovesObj);
+
+    gloves.forEach(([productId, product]) => {
+        const isSenior = tableId === "seniorGlovesTable";
+        tbody.appendChild(
             createGloveRow(
                 productId,
                 product,
-                seniorSizes,
-                true,
-                currentCurrency,
-            ),
-        );
-    });
-
-    juniorGloves.forEach(([productId, product]) => {
-        juniorTbody.appendChild(
-            createGloveRow(
-                productId,
-                product,
-                juniorSizes,
-                false,
+                sizes,
+                isSenior,
                 currentCurrency,
             ),
         );
@@ -142,11 +151,11 @@ function sortAndDisplayGloves() {
 }
 
 function addImageButtonListeners() {
-    console.log('Adding image button listeners');
-    document.querySelectorAll('.product-image-button').forEach(button => {
-        button.addEventListener('mouseenter', showProductImage);
-        button.addEventListener('mouseleave', hideProductImage);
-        button.addEventListener('click', (event) => {
+    console.log("Adding image button listeners");
+    document.querySelectorAll(".product-image-button").forEach((button) => {
+        button.addEventListener("mouseenter", showProductImage);
+        button.addEventListener("mouseleave", hideProductImage);
+        button.addEventListener("click", (event) => {
             event.preventDefault();
             showProductImage(event);
         });
@@ -240,6 +249,7 @@ async function loadCompanyInfo() {
 }
 
 function showOrderPreview() {
+    console.log("showOrderPreview called"); // Debug log
     const orderData = gatherOrderData();
     if (orderData.products.length === 0) {
         alert("Prosím vyberte alespoň jeden produkt do objednávky.");
@@ -252,7 +262,9 @@ function showOrderPreview() {
     }
 
     if (!validatePhoneNumber(orderData.phone)) {
-        alert("Zadejte platné telefonní číslo (minimálně 9 číslic, povolené znaky: +, -, (, )).");
+        alert(
+            "Zadejte platné telefonní číslo (minimálně 9 číslic, povolené znaky: +, -, (, )).",
+        );
         return;
     }
 
@@ -264,7 +276,17 @@ function showOrderPreview() {
     );
     const totalWithVAT = orderData.totalPrice + vatAmount;
 
+    const modal = document.getElementById("orderModal");
     const modalContent = document.getElementById("modalContent");
+
+    // Make sure modal exists
+    if (!modal || !modalContent) {
+        console.error("Modal elements not found:", { modal, modalContent });
+        return;
+    }
+
+    document.getElementById("modalTitle").textContent = "Náhled objednávky";
+
     modalContent.innerHTML = `
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -300,15 +322,20 @@ function showOrderPreview() {
         </div>
     `;
 
-    document.getElementById("modalTitle").textContent = "Náhled objednávky";
     document.getElementById("confirmOrder").style.display = "inline-block";
-    document.getElementById("orderModal").classList.remove("hidden");
-    document.getElementById("orderModal").classList.add("flex");
+    document.getElementById("modalActions").style.display = "flex";
+
+    // Show the modal by setting display style directly
+    modal.style.display = "flex";
+
+    console.log("Modal should be visible now"); // Debug log
 }
 
 function closeModal() {
-    document.getElementById("orderModal").classList.add("hidden");
-    document.getElementById("orderModal").classList.remove("flex");
+    const modal = document.getElementById("orderModal");
+    if (modal) {
+        modal.style.display = "none";
+    }
 }
 
 function toggleCategory(category) {
@@ -343,17 +370,32 @@ function updateVATDisplay() {
 
 // Event Listeners
 window.addEventListener("load", () => {
-    const validPasswords = ["bu1b2bheslo", "Sportfotbal5?", "Sali34:", "PartnerBU1?", "?FutbalShop92", "Gol1Sport!?", "HSportB2b?", "JanalikB2B?",];  // Replace with your actual passwords
+    const validPasswords = [
+        "bu1b2bheslo",
+        "Sportfotbal5?",
+        "Sali34:",
+        "PartnerBU1?",
+        "?FutbalShop92",
+        "Gol1Sport!?",
+        "HSportB2b?",
+        "JanalikB2B?",
+        "Mtrade24?!?",
+        "SportJecha!2024?",
+        "Decathlon?1!20",
+        "SKKeeperSPORT?10",
+        "COMSport23?",
+        "24?Foremo",
+        "GAZAsport?1!",
+        "Kadidlo?2!",
+    ];
     const passwordModal = document.getElementById("passwordModal");
     const passwordInput = document.getElementById("passwordInput");
     const submitPassword = document.getElementById("submitPassword");
     const passwordError = document.getElementById("passwordError");
     const mainContent = document.getElementById("mainContent");
 
-    // Show the modal when the page loads
     passwordModal.classList.remove("hidden");
 
-    // Handle password submission
     submitPassword.addEventListener("click", function () {
         const enteredPassword = passwordInput.value;
 
@@ -361,8 +403,8 @@ window.addEventListener("load", () => {
             passwordError.classList.remove("hidden");
         } else {
             passwordError.classList.add("hidden");
-            passwordModal.classList.add("hidden");  // Hide the modal
-            mainContent.classList.remove("hidden");  // Show the main content
+            passwordModal.classList.add("hidden");
+            mainContent.classList.remove("hidden");
         }
     });
 });
@@ -386,34 +428,43 @@ window.addEventListener("load", () => {
         console.error("loadCompanyInfo button not found");
     }
 
-    document
-        .getElementById("submitOrder")
-        .addEventListener("click", showOrderPreview);
+    // Add event listener for the submit order button
+    const submitOrderButton = document.getElementById("submitOrder");
+    if (submitOrderButton) {
+        submitOrderButton.addEventListener("click", showOrderPreview);
+        console.log("Event listener added for submitOrder button");
+    } else {
+        console.error("submitOrder button not found");
+    }
 
-    document.getElementById('confirmOrder').addEventListener('click', async () => {
-        // Hide the modal title and buttons
-        document.getElementById('modalTitle').textContent = '';
-        document.getElementById('modalActions').style.display = 'none';  // Hide the action buttons
+    const confirmOrderButton = document.getElementById("confirmOrder");
+    if (confirmOrderButton) {
+        confirmOrderButton.addEventListener("click", async () => {
+            document.getElementById("modalTitle").textContent = "";
+            document.getElementById("modalActions").style.display = "none"; // Hide the action buttons
 
-        // Display the loading spinner
-        document.getElementById('modalContent').innerHTML = `
-            <div class="flex justify-center items-center">
-                <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
-                </svg>
-            </div>
-        `;
+            document.getElementById("modalContent").innerHTML = `
+                <div class="flex justify-center items-center">
+                    <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
+                    </svg>
+                </div>
+            `;
 
-        // Process the order
-        const orderData = gatherOrderData();
-        await sendOrder(orderData, currentCurrency);
+            const orderData = gatherOrderData();
+            await sendOrder(orderData, currentCurrency);
+        });
+    } else {
+        console.error("confirmOrder button not found");
+    }
 
-    });
-
-    document
-        .getElementById("cancelOrder")
-        .addEventListener("click", closeModal);
+    const cancelOrderButton = document.getElementById("cancelOrder");
+    if (cancelOrderButton) {
+        cancelOrderButton.addEventListener("click", closeModal);
+    } else {
+        console.error("cancelOrder button not found");
+    }
 
     document.getElementById("email").addEventListener("blur", function () {
         if (!validateEmail(this.value)) {
@@ -427,7 +478,9 @@ window.addEventListener("load", () => {
     document.getElementById("phone").addEventListener("blur", function () {
         if (!validatePhoneNumber(this.value)) {
             this.classList.add("border-red-500");
-            alert("Please enter a valid phone number (minimum 9 digits, allowed characters: +, -, (, )).");
+            alert(
+                "Please enter a valid phone number (minimum 9 digits, allowed characters: +, -, (, )).",
+            );
         } else {
             this.classList.remove("border-red-500");
         }
@@ -447,5 +500,3 @@ window.addEventListener("load", () => {
 
     document.getElementById("clearOrder").addEventListener("click", clearOrder);
 });
-
-
