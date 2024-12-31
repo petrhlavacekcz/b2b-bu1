@@ -388,6 +388,8 @@ window.addEventListener("load", () => {
         "GAZAsport?1!",
         "Kadidlo?2!",
         "KOVAC2024?!?",
+        "FS?Glkp!24",
+        "BuchticSK?25!"
     ];
     const passwordModal = document.getElementById("passwordModal");
     const passwordInput = document.getElementById("passwordInput");
