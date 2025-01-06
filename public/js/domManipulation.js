@@ -2,11 +2,10 @@ import { getPrice, formatPrice } from "./utils.js";
 
 let activeImageModal = null;
 
-export function createGloveRow(
+export function createRow(
     productId,
     product,
-    sizes,
-    isSenior,
+    variants,
     currentCurrency,
 ) {
     const row = document.createElement("tr");
@@ -14,66 +13,83 @@ export function createGloveRow(
     const vocPrice = getPrice(product.prices, true, currentCurrency);
 
     const imageUrl = product.images && Object.values(product.images)[0];
+    const isVariantProduct = Object.keys(product.variants || {}).length > 0;
 
-    const sizeColumns = sizes
-        .map((size) => {
-            const variant = Object.entries(product.variants).find(
-                ([, v]) => v.name === size.toString(),
-            );
-            if (!variant) return "";
+    // Get total stock directly from the product's stock field
+    const totalInStock = Object.values(product.stock)[0] || 0;
 
-            const [variantId, variantData] = variant;
-            const variantQuantity = Object.values(variantData.stock)[0] || 0;
-            const savedQuantity =
-                parseInt(localStorage.getItem(`order_${productId}_${size}`)) ||
-                0;
-            const isInStock = variantQuantity > 0;
+    let variantColumns = '';
+    if (isVariantProduct) {
+        variantColumns = variants
+            .map((variant) => {
+                const variantMatch = Object.entries(product.variants).find(
+                    ([, v]) => v.name === variant.toString(),
+                );
+                if (!variantMatch) return '<td class="px-1 py-2 whitespace-nowrap text-center size-column" style="min-width: 80px; width: 80px;"></td>';
 
-            return `
-            <td class="px-1 py-2 whitespace-nowrap text-center size-column" style="min-width: 80px; width: 80px;">
+                const [variantId, variantData] = variantMatch;
+                const variantQuantity = Object.values(variantData.stock)[0] || 0;
+                const savedQuantity =
+                    parseInt(localStorage.getItem(`order_${productId}_${variant}`)) ||
+                    0;
+                const isInStock = variantQuantity > 0;
+
+                return `
+                <td class="px-1 py-2 whitespace-nowrap text-center size-column" style="min-width: 80px; width: 80px;">
+                    <div class="flex flex-col items-center ${isInStock ? "bg-green-100" : ""}">
+                        <span class="text-xs ${isInStock ? "font-semibold text-gray-900" : "text-gray-500"}">${variantQuantity}</span>
+                        ${
+                            isInStock
+                                ? `
+                            <input type="number" min="0" value="${savedQuantity}" 
+                            data-product-id="${productId}" 
+                            data-variant="${variant}" 
+                            data-price="${getPrice(variantData.prices, true, currentCurrency)}" 
+                            data-variant-id="${variantId}"
+                            data-sku="${variantData.sku}"
+                            data-ean="${variantData.ean}"
+                            max="${variantQuantity}"
+                            class="mt-1 block w-16 text-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        `
+                                : ""
+                        }
+                    </div>
+                </td>`;
+            })
+            .join("");
+    } else {
+        // Non-variant product
+        const quantity = Object.values(product.stock)[0] || 0;
+        const savedQuantity = parseInt(localStorage.getItem(`order_${productId}`)) || 0;
+        const isInStock = quantity > 0;
+
+        variantColumns = `
+            <td class="px-1 py-2 whitespace-nowrap text-center" style="min-width: 80px;">
                 <div class="flex flex-col items-center ${isInStock ? "bg-green-100" : ""}">
-                    <span class="text-xs ${isInStock ? "font-semibold text-gray-900" : "text-gray-500"}">${variantQuantity}</span>
+                    <span class="text-xs ${isInStock ? "font-semibold text-gray-900" : "text-gray-500"}">${quantity}</span>
                     ${
                         isInStock
                             ? `
                         <input type="number" min="0" value="${savedQuantity}" 
                         data-product-id="${productId}" 
-                        data-size="${size}" 
-                        data-price="${getPrice(variantData.prices, true, currentCurrency)}" 
-                        data-variant-id="${variantId}"
-                        data-sku="${variantData.sku}"
-                        data-ean="${variantData.ean}"
-                        max="${variantQuantity}"
+                        data-variant="single"
+                        data-price="${vocPrice}" 
+                        data-sku="${product.sku}"
+                        data-ean="${product.ean}"
+                        max="${quantity}"
                         class="mt-1 block w-16 text-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     `
                             : ""
                     }
                 </div>
             </td>`;
-        })
-        .join("");
+    }
 
-    const totalInStock = sizes.reduce((total, size) => {
-        if (product.variants) {
-            for (const variant of Object.values(product.variants)) {
-                const variantSize = variant.name
-                    .split(" ")
-                    .pop()
-                    .replace(",", ".");
-                if (variantSize === size) {
-                    return total + (Object.values(variant.stock)[0] || 0);
-                }
-            }
-        }
-        return total;
-    }, 0);
-
-    const totalOrdered = sizes.reduce((total, size) => {
-        return (
-            total +
-            (parseInt(localStorage.getItem(`order_${productId}_${size}`)) || 0)
-        );
-    }, 0);
+    const totalOrdered = isVariantProduct
+        ? variants.reduce((total, variant) => {
+            return total + (parseInt(localStorage.getItem(`order_${productId}_${variant}`)) || 0);
+        }, 0)
+        : parseInt(localStorage.getItem(`order_${productId}`)) || 0;
 
     row.innerHTML = `
         <td class="px-2 py-2 whitespace-nowrap sticky-column" style="left: 0; z-index: 10; min-width: 200px;">
@@ -101,23 +117,30 @@ export function createGloveRow(
         <td class="px-2 py-2 whitespace-nowrap text-center border-r border-gray-200" style="min-width: 60px;">
             <span class="text-xs text-gray-500">${totalOrdered}</span>
         </td>
-        ${sizeColumns}
+        ${variantColumns}
     `;
     return row;
 }
 
-export function populateTableHeader(tableId, sizes) {
+export function populateTableHeader(tableId, variants) {
     const headerRow = document.querySelector(`#${tableId} thead tr`);
     headerRow.innerHTML = `
         <th scope="col" class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky-header sticky-column" style="left: 0; z-index: 20; min-width: 200px;">Produkt</th>
         <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider sticky-header" style="min-width: 60px;">Skladem</th>
         <th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider sticky-header border-r border-gray-200" style="min-width: 60px;">Objednáno</th>
-        ${sizes
-            .map(
-                (size) => `
-            <th scope="col" class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider size-column sticky-header" style="min-width: 80px; width: 80px;">${size}</th>
-        `,
-            )
+        ${variants
+            .map((variant) => {
+                const isNonVariant = variant === 'single';
+                return `
+                    <th scope="col" class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider size-column sticky-header" style="min-width: 80px; width: 80px;">
+                        ${isNonVariant ? 
+                            `<svg class="w-4 h-4 mx-auto" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                            </svg>` 
+                            : variant}
+                    </th>
+                `;
+            })
             .join("")}
     `;
 }

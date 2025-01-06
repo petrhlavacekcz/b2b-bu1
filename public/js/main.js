@@ -1,4 +1,4 @@
-import { fetchGloves } from "./api.js";
+import { fetchCategories, fetchAllProducts, categorizeProducts } from "./api.js";
 import {
     getVariantSizes,
     getVATRate,
@@ -9,7 +9,7 @@ import {
     calculateVAT,
 } from "./utils.js";
 import {
-    createGloveRow,
+    createRow,
     populateTableHeader,
     showProductImage,
     hideProductImage,
@@ -21,69 +21,87 @@ import {
     gatherOrderData,
 } from "./orderHandling.js";
 
-let allGloves = {
-    senior: [],
-    junior: [],
-};
+let allProducts = {};
 let currentCurrency = "CZK";
 
 async function populateTable() {
     try {
         console.log("Starting data loading...");
-        const seniorGloves = await fetchGloves("senior");
-        const juniorGloves = await fetchGloves("junior");
-        console.log("Senior data loaded:", seniorGloves);
-        console.log("Junior data loaded:", juniorGloves);
+        
+        // 1. Fetch all categories
+        const categories = await fetchCategories();
+        console.log("Categories loaded:", categories);
 
-        allGloves.senior = Object.entries(seniorGloves).filter(
-            ([, product]) => {
-                return Object.values(product.variants || {}).some(
-                    (variant) => Object.values(variant.stock)[0] > 0,
-                );
-            },
-        );
-        allGloves.junior = Object.entries(juniorGloves).filter(
-            ([, product]) => {
-                return Object.values(product.variants || {}).some(
-                    (variant) => Object.values(variant.stock)[0] > 0,
-                );
-            },
-        );
-        console.log("Filtered senior products:", allGloves.senior);
-        console.log("Filtered junior products:", allGloves.junior);
+        // 2. Fetch all products at once
+        const allProductsData = await fetchAllProducts();
+        console.log("All products loaded");
 
-        const seniorSizes = getVariantSizes(
-            Object.fromEntries(allGloves.senior),
-        );
-        const juniorSizes = getVariantSizes(
-            Object.fromEntries(allGloves.junior),
-        );
-        console.log("Available senior sizes:", seniorSizes);
-        console.log("Available junior sizes:", juniorSizes);
+        // 3. Categorize products
+        const categorizedProducts = categorizeProducts(allProductsData);
+        console.log("Products categorized:", categorizedProducts);
 
-        populateTableHeader("seniorGlovesTable", seniorSizes);
-        populateTableHeader("juniorGlovesTable", juniorSizes);
+        // Create tables for each category
+        for (const category of categories) {
+            const categoryId = category.category_id;
+            const categoryName = category.name;
+            
+            // Get products for this category
+            const categoryProducts = categorizedProducts[categoryId] || {};
+            
+            // Skip empty categories
+            if (Object.keys(categoryProducts).length === 0) {
+                continue;
+            }
+            
+            // Create table container if it doesn't exist
+            let tableContainer = document.getElementById(`category_${categoryId}`);
+            if (!tableContainer) {
+                tableContainer = document.createElement('div');
+                tableContainer.id = `category_${categoryId}`;
+                tableContainer.className = 'mb-8';
+                tableContainer.innerHTML = `
+                    <h2 class="text-xl font-bold mb-4">${categoryName}</h2>
+                    <div class="order-table">
+                        <table id="table_${categoryId}" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr></tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                `;
+                document.getElementById("tablesContainer").appendChild(tableContainer);
+            }
 
-        if (allGloves.senior.length === 0 && allGloves.junior.length === 0) {
-            document.getElementById("loading").textContent =
-                "No data to display.";
+            // Filter products with stock
+            allProducts[categoryId] = Object.entries(categoryProducts).filter(([, product]) => {
+                if (product.variants && Object.keys(product.variants).length > 0) {
+                    return Object.values(product.variants).some(
+                        (variant) => Object.values(variant.stock)[0] > 0
+                    );
+                }
+                return Object.values(product.stock)[0] > 0;
+            });
+
+            const variants = getVariantSizes(Object.fromEntries(allProducts[categoryId]));
+            console.log(`Available variants for category ${categoryName}:`, variants);
+
+            populateTableHeader(`table_${categoryId}`, variants);
+            populateProductTable(categoryId, variants);
+        }
+
+        if (Object.keys(allProducts).every(catId => allProducts[catId].length === 0)) {
+            document.getElementById("loading").textContent = "No products available.";
             return;
         }
 
-        sortAndDisplayGloves();
-
         console.log("Tables populated with data.");
         document.getElementById("loading").style.display = "none";
-        document.getElementById("seniorGlovesTable").style.display = "table";
-        document.getElementById("juniorGlovesTable").style.display = "table";
 
-        document
-            .querySelectorAll(
-                '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]',
-            )
-            .forEach((input) => {
-                input.addEventListener("change", saveOrderQuantity);
-            });
+        // Add event listeners to all number inputs
+        document.querySelectorAll('input[type="number"]').forEach((input) => {
+            input.addEventListener("change", saveOrderQuantity);
+        });
 
         updateOrderSummary(currentCurrency);
         addImageButtonListeners();
@@ -94,60 +112,45 @@ async function populateTable() {
     }
 }
 
-function sortAndDisplayGloves() {
-    const sortValue = document.getElementById("sort").value;
-
-    // Sort senior gloves
-    allGloves.senior.sort(([, a], [, b]) => {
-        if (sortValue === "name") {
-            return (a.text_fields.name || "").localeCompare(
-                b.text_fields.name || "",
-            );
-        } else if (sortValue === "priceAsc" || sortValue === "priceDesc") {
-            const priceA = getPrice(a.prices, true, currentCurrency);
-            const priceB = getPrice(b.prices, true, currentCurrency);
-            return sortValue === "priceAsc" ? priceA - priceB : priceB - priceA;
-        }
-    });
-
-    // Sort junior gloves
-    allGloves.junior.sort(([, a], [, b]) => {
-        if (sortValue === "name") {
-            return (a.text_fields.name || "").localeCompare(
-                b.text_fields.name || "",
-            );
-        } else if (sortValue === "priceAsc" || sortValue === "priceDesc") {
-            const priceA = getPrice(a.prices, true, currentCurrency);
-            const priceB = getPrice(b.prices, true, currentCurrency);
-            return sortValue === "priceAsc" ? priceA - priceB : priceB - priceA;
-        }
-    });
-
-    populateGlovesTable("seniorGlovesTable", allGloves.senior);
-    populateGlovesTable("juniorGlovesTable", allGloves.junior);
-}
-
-function populateGlovesTable(tableId, gloves) {
-    const tbody = document.querySelector(`#${tableId} tbody`);
+function populateProductTable(categoryId, variants) {
+    const tbody = document.querySelector(`#table_${categoryId} tbody`);
     tbody.innerHTML = "";
 
-    const glovesObj = Object.fromEntries(gloves);
-    const sizes = getVariantSizes(glovesObj);
+    const products = allProducts[categoryId];
+    const productsObj = Object.fromEntries(products);
 
-    gloves.forEach(([productId, product]) => {
-        const isSenior = tableId === "seniorGlovesTable";
+    products.forEach(([productId, product]) => {
         tbody.appendChild(
-            createGloveRow(
+            createRow(
                 productId,
                 product,
-                sizes,
-                isSenior,
+                variants,
                 currentCurrency,
-            ),
+            )
         );
     });
 
     updateOrderSummary(currentCurrency);
+}
+
+function sortAndDisplayProducts() {
+    const sortValue = document.getElementById("sort").value;
+
+    // Sort products in each category
+    Object.keys(allProducts).forEach(categoryId => {
+        allProducts[categoryId].sort(([, a], [, b]) => {
+            if (sortValue === "name") {
+                return (a.text_fields.name || "").localeCompare(b.text_fields.name || "");
+            } else if (sortValue === "priceAsc" || sortValue === "priceDesc") {
+                const priceA = getPrice(a.prices, true, currentCurrency);
+                const priceB = getPrice(b.prices, true, currentCurrency);
+                return sortValue === "priceAsc" ? priceA - priceB : priceB - priceA;
+            }
+        });
+
+        const variants = getVariantSizes(Object.fromEntries(allProducts[categoryId]));
+        populateProductTable(categoryId, variants);
+    });
 }
 
 function addImageButtonListeners() {
@@ -317,8 +320,6 @@ function showOrderPreview() {
             <p>DPH ${(vatRate * 100).toFixed(0)}%: ${formatPrice(vatAmount, currentCurrency)}</p>
             <p class="font-bold">Celková cena s DPH: ${formatPrice(totalWithVAT, currentCurrency)}</p>
             <p>Celkový počet kusů: ${orderData.totalQuantity}</p>
-            <p>Počet senior kusů: ${orderData.seniorQuantity}</p>
-            <p>Počet junior kusů: ${orderData.juniorQuantity}</p>
         </div>
     `;
 
@@ -355,7 +356,7 @@ function toggleCategory(category) {
 
 function changeCurrency() {
     currentCurrency = document.getElementById("currency").value;
-    sortAndDisplayGloves();
+    sortAndDisplayProducts();
 }
 
 function updateVATDisplay() {
@@ -418,7 +419,7 @@ window.addEventListener("load", () => {
 
     document
         .getElementById("sort")
-        .addEventListener("change", sortAndDisplayGloves);
+        .addEventListener("change", sortAndDisplayProducts);
     document
         .getElementById("currency")
         .addEventListener("change", changeCurrency);

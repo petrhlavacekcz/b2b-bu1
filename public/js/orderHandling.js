@@ -16,56 +16,45 @@ export function gatherOrderData() {
         isVatRegistered: !!document.getElementById("dic").value,
         products: [],
         totalPrice: 0,
-        totalQuantity: 0,
-        seniorQuantity: 0,
-        juniorQuantity: 0,
+        totalQuantity: 0
     };
 
-    document
-        .querySelectorAll(
-            '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]',
-        )
-        .forEach((input) => {
-            const quantity = parseInt(input.value);
-            if (quantity > 0) {
-                const productId = input.dataset.productId;
-                const size = input.dataset.size;
-                const price = parseFloat(input.dataset.price);
-                const variantId = input.dataset.variantId;
-                const sku = input.dataset.sku;
-                const ean = input.dataset.ean;
-                const productName = input
-                    .closest("tr")
-                    .querySelector(
-                        "td:first-child .text-sm.font-medium",
-                    ).textContent;
-                orderData.products.push({
-                    productId,
-                    productName,
-                    size,
-                    quantity,
-                    price,
-                    variantId,
-                    sku,
-                    ean,
-                });
-                orderData.totalPrice += quantity * price;
-                orderData.totalQuantity += quantity;
-                if (parseFloat(size) >= 7) {
-                    orderData.seniorQuantity += quantity;
-                } else {
-                    orderData.juniorQuantity += quantity;
-                }
-            }
-        });
+    // Find all product tables and gather data from each
+    document.querySelectorAll('input[type="number"]').forEach((input) => {
+        const quantity = parseInt(input.value);
+        if (quantity > 0) {
+            const productId = input.dataset.productId;
+            const variant = input.dataset.variant;
+            const price = parseFloat(input.dataset.price);
+            const variantId = input.dataset.variantId;
+            const sku = input.dataset.sku;
+            const ean = input.dataset.ean;
+            const productName = input
+                .closest("tr")
+                .querySelector(
+                    "td:first-child .text-sm.font-medium",
+                ).textContent;
+            orderData.products.push({
+                productId,
+                productName,
+                size: variant,
+                quantity,
+                price,
+                variantId,
+                sku,
+                ean,
+            });
+            orderData.totalPrice += quantity * price;
+            orderData.totalQuantity += quantity;
+        }
+    });
 
     return orderData;
 }
 
 export function updateOrderSummary(currentCurrency) {
     const orderData = gatherOrderData();
-    const { totalPrice, totalQuantity, seniorQuantity, juniorQuantity } =
-        orderData;
+    const { totalPrice, totalQuantity } = orderData;
     const vatRate = getVATRate(orderData.country, orderData.isVatRegistered);
     const vatAmount = calculateVAT(
         totalPrice,
@@ -79,8 +68,6 @@ export function updateOrderSummary(currentCurrency) {
         currentCurrency,
     );
     document.getElementById("totalQuantity").textContent = totalQuantity;
-    document.getElementById("seniorQuantity").textContent = seniorQuantity;
-    document.getElementById("juniorQuantity").textContent = juniorQuantity;
     document.getElementById("vatAmount").textContent =
         `${formatPrice(vatAmount, currentCurrency)} (${(vatRate * 100).toFixed(0)}%)`;
     document.getElementById("totalWithVAT").textContent = formatPrice(
@@ -208,25 +195,24 @@ export async function sendOrder(orderData, currentCurrency) {
 }
 
 export function clearOrder() {
-    document
-        .querySelectorAll(
-            '#seniorGlovesTable input[type="number"], #juniorGlovesTable input[type="number"]',
-        )
-        .forEach((input) => {
-            input.value = 0;
-            const productId = input.dataset.productId;
-            const size = input.dataset.size;
-            localStorage.removeItem(`order_${productId}_${size}`);
-        });
+    // Clear all number inputs
+    document.querySelectorAll('input[type="number"]').forEach((input) => {
+        input.value = 0;
+        const productId = input.dataset.productId;
+        const variant = input.dataset.variant;
+        localStorage.removeItem(`order_${productId}_${variant}`);
+    });
 
-    document
-        .querySelectorAll(
-            "#seniorGlovesTable tbody tr, #juniorGlovesTable tbody tr",
-        )
-        .forEach((row) => {
-            const orderedCell = row.querySelector("td:nth-child(3)");
-            orderedCell.querySelector("span").textContent = "0";
-        });
+    // Reset all ordered quantities in table cells
+    document.querySelectorAll("table tbody tr").forEach((row) => {
+        const orderedCell = row.querySelector("td:nth-child(3)");
+        if (orderedCell) {
+            const span = orderedCell.querySelector("span");
+            if (span) {
+                span.textContent = "0";
+            }
+        }
+    });
 
     updateOrderSummary();
 }

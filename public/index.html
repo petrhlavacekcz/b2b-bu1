@@ -220,183 +220,39 @@
         <!-- Rest of the content remains the same -->
         <!-- Main Content -->
         <div id="mainContent" class="hidden">
-            <!-- Previous main content remains unchanged -->
-            <div class="min-h-screen">
-                <header class="bg-blue-600 text-white shadow-md">
-                    <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-                        <h1 class="text-3xl font-bold">
-                            BU1 sport - B2B system
-                        </h1>
-                    </div>
-                </header>
+            <div class="container mx-auto px-4 py-8">
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    <div class="p-6">
+                        <h1 class="text-2xl font-bold mb-4">BU1 sport - B2B objednávka</h1>
+                        
+                        <!-- Loading indicator -->
+                        <div id="loading" class="text-center py-4">Načítání dat...</div>
 
-                <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                    <!-- Previous main content remains unchanged -->
-                    <div class="bg-white shadow-lg rounded-lg p-6">
-                        <div
-                            class="flex justify-between items-center mb-4 sorting-currency-wrapper"
-                        >
+                        <!-- Sorting and currency controls -->
+                        <div class="flex justify-between items-center mb-4 sorting-currency-wrapper">
                             <div class="flex items-center">
-                                <label
-                                    for="sort"
-                                    class="mr-2 text-sm font-medium"
-                                    >Řazení:</label
-                                >
-                                <select
-                                    id="sort"
-                                    class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                >
+                                <label for="sort" class="mr-2">Seřadit podle:</label>
+                                <select id="sort" class="border rounded p-1">
                                     <option value="name">Název</option>
-                                    <option value="priceAsc">
-                                        Cena (vzestupně)
-                                    </option>
-                                    <option value="priceDesc">
-                                        Cena (sestupně)
-                                    </option>
+                                    <option value="priceAsc">Cena (od nejnižší)</option>
+                                    <option value="priceDesc">Cena (od nejvyšší)</option>
                                 </select>
                             </div>
                             <div class="flex items-center">
-                                <label
-                                    for="currency"
-                                    class="mr-2 text-sm font-medium"
-                                    >Měna:</label
-                                >
-                                <select
-                                    id="currency"
-                                    class="bg-white border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                >
+                                <label for="currency" class="mr-2">Měna:</label>
+                                <select id="currency" class="border rounded p-1">
                                     <option value="CZK">CZK</option>
                                     <option value="EUR">EUR</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div
-                            id="loading"
-                            class="text-center py-4 text-gray-600"
-                        >
-                            <div
-                                id="spinner"
-                                class="flex justify-center items-center"
-                            >
-                                <svg
-                                    class="animate-spin h-5 w-5 text-blue-500"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        class="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        stroke-width="4"
-                                    ></circle>
-                                    <path
-                                        class="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"
-                                    ></path>
-                                </svg>
-                            </div>
+                        <!-- Tables Container -->
+                        <div id="tablesContainer" class="overflow-x-auto">
+                            <!-- Category tables will be dynamically inserted here -->
                         </div>
 
-                        <!-- Previous content remains unchanged -->
-                        <div class="mb-8">
-                            <h3
-                                class="text-xl font-semibold mb-2 category-header flex items-center"
-                                data-category="senior"
-                            >
-                                <span class="mr-2"
-                                    >Brankářské rukavice - senior</span
-                                >
-                                <svg
-                                    class="w-5 h-5 transition-transform duration-200"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7"
-                                    ></path>
-                                </svg>
-                            </h3>
-                            <div
-                                class="category-content"
-                                data-category="senior"
-                            >
-                                <div class="order-table">
-                                    <table
-                                        id="seniorGlovesTable"
-                                        class="min-w-full divide-y divide-gray-200"
-                                    >
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <!-- Table headers will be dynamically populated -->
-                                            </tr>
-                                        </thead>
-                                        <tbody
-                                            class="bg-white divide-y divide-gray-200"
-                                        >
-                                            <!-- Table body will be dynamically populated -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-8">
-                            <h3
-                                class="text-xl font-semibold mb-2 category-header flex items-center"
-                                data-category="junior"
-                            >
-                                <span class="mr-2"
-                                    >Brankářské rukavice - junior</span
-                                >
-                                <svg
-                                    class="w-5 h-5 transition-transform duration-200"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7"
-                                    ></path>
-                                </svg>
-                            </h3>
-                            <div
-                                class="category-content"
-                                data-category="junior"
-                            >
-                                <div class="order-table">
-                                    <table
-                                        id="juniorGlovesTable"
-                                        class="min-w-full divide-y divide-gray-200"
-                                    >
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <!-- Table headers will be dynamically populated -->
-                                            </tr>
-                                        </thead>
-                                        <tbody
-                                            class="bg-white divide-y divide-gray-200"
-                                        >
-                                            <!-- Table body will be dynamically populated -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
+                        <!-- Order Form -->
                         <div class="mt-4">
                             <button
                                 id="clearOrder"
@@ -478,28 +334,6 @@
                                         </td>
                                         <td
                                             id="totalQuantity"
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
-                                        ></td>
-                                    </tr>
-                                    <tr>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                                        >
-                                            Počet senior kusů
-                                        </td>
-                                        <td
-                                            id="seniorQuantity"
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
-                                        ></td>
-                                    </tr>
-                                    <tr>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                                        >
-                                            Počet junior kusů
-                                        </td>
-                                        <td
-                                            id="juniorQuantity"
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
                                         ></td>
                                     </tr>
@@ -701,7 +535,7 @@
                             </div>
                         </form>
                     </div>
-                </main>
+                </div>
             </div>
         </div>
 

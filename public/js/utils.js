@@ -2,19 +2,45 @@ import { VAT_RATES, WHOLESALE_PRICE_GROUP_ID, REGULAR_PRICE_EUR_ID, WHOLESALE_PR
 
 export { VAT_RATES };
 
-export function getVariantSizes(products) {
-    const sizes = new Set();
+export function getVariants(products) {
+    const variants = new Set();
     for (const product of Object.values(products)) {
         if (product.variants) {
             for (const variant of Object.values(product.variants)) {
-                const size = variant.name.split(' ').pop().replace(',', '.');
-                if (!isNaN(parseFloat(size)) && isFinite(size)) {
-                    sizes.add(size);
-                }
+                variants.add(variant.name);
             }
+        } else {
+            variants.add('single');
         }
     }
-    return Array.from(sizes).sort((a, b) => parseFloat(a) - parseFloat(b));
+    return Array.from(variants).sort((a, b) => {
+        if (a === 'single') return -1;
+        if (b === 'single') return 1;
+        return parseFloat(a) - parseFloat(b);
+    });
+}
+
+export function getVariantSizes(products) {
+    const variants = new Set();
+    for (const product of Object.values(products)) {
+        if (product.variants && Object.keys(product.variants).length > 0) {
+            for (const variant of Object.values(product.variants)) {
+                variants.add(variant.name);
+            }
+        } else {
+            variants.add('single');
+        }
+    }
+    return Array.from(variants).sort((a, b) => {
+        if (a === 'single') return -1;
+        if (b === 'single') return 1;
+        const aNum = parseFloat(a);
+        const bNum = parseFloat(b);
+        if (isNaN(aNum) || isNaN(bNum)) {
+            return a.localeCompare(b);
+        }
+        return aNum - bNum;
+    });
 }
 
 export function getPrice(prices, isWholesale, currentCurrency) {
