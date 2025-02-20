@@ -1,0 +1,176 @@
+/* Cart Panel Styles */
+#cartPanel, #filterPanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 400px;
+    background-color: white;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 50;
+    box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+#cartPanel.open, #filterPanel.open {
+    transform: translateX(0);
+}
+
+#cartOverlay, #filterOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 40;
+}
+
+#cartOverlay.open, #filterOverlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Cart Badge */
+#cartBadge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #EF4444;
+    color: white;
+    border-radius: 9999px;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: none;
+}
+
+/* Cart Items */
+#cartItems {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+#cartItems::-webkit-scrollbar {
+    width: 6px;
+}
+
+#cartItems::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#cartItems::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+}
+
+/* Table Styles */
+.order-table {
+    margin-bottom: 2rem;
+    width: 100%;
+    background-color: white;
+    overflow-x: auto;
+    display: block;
+}
+
+.order-table table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.order-table th {
+    padding: 0.75rem;
+    background-color: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+/* Floating Header */
+.floating-header {
+    position: fixed;
+    top: 88px;
+    left: 0;
+    right: 0;
+    background-color: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+    z-index: 30;
+    display: none;
+    padding: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+}
+
+.floating-header.visible {
+    display: block;
+}
+
+.floating-header table {
+    width: max-content;
+    min-width: 100%;
+}
+
+.floating-header th {
+    padding: 0.75rem;
+    text-align: left;
+    background-color: #f3f4f6;
+    white-space: nowrap;
+}
+
+/* Category container styles */
+.category-container {
+    margin-bottom: 2rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Category header styles */
+.category-header {
+    padding: 1rem;
+    background-color: white;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Main header styles */
+body {
+    padding-top: 0;
+}
+
+/* Ensure content flows under fixed header */
+#mainContent {
+    padding-top: 88px;
+}
+
+/* First column styles */
+.sticky-column {
+    background-color: white;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+}
+
+/* Scrollbar Styles */
+.order-table::-webkit-scrollbar,
+.floating-header::-webkit-scrollbar {
+    height: 8px;
+}
+
+.order-table::-webkit-scrollbar-track,
+.floating-header::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.order-table::-webkit-scrollbar-thumb,
+.floating-header::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.order-table::-webkit-scrollbar-thumb:hover,
+.floating-header::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ... rest of your CSS ... */ 

@@ -1,6 +1,4 @@
 export const INVENTORY_ID = '39571';
-export const CATEGORY_ID_SENIOR = '5273127';
-export const CATEGORY_ID_JUNIOR = '5273128';
 export const WHOLESALE_PRICE_GROUP_ID = '42344';
 export const REGULAR_PRICE_EUR_ID = '46109';
 export const WHOLESALE_PRICE_EUR_ID = '55160';

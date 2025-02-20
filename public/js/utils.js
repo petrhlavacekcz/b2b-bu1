@@ -56,10 +56,15 @@ export function formatPrice(price, currency) {
 }
 
 export function getVATRate(country, isVatRegistered) {
-    if (country === 'CZ' || !isVatRegistered) {
-        return VAT_RATES[country] || VAT_RATES['CZ'];
+    if (country === "CZ") {
+        return VAT_RATES["CZ"];
     }
-    return 0;
+
+    if (isVatRegistered) {
+        return 0;
+    }
+
+    return VAT_RATES[country] || 0;
 }
 
 export function calculateVAT(price, country, isVatRegistered) {

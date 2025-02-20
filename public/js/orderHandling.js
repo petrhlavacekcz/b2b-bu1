@@ -1,19 +1,20 @@
 import { VAT_RATES, getVATRate, calculateVAT, formatPrice } from "./utils.js";
 import { showOrderResult } from "./domManipulation.js";
+import { updateCartBadge, updateCartItems } from "./cart.js";
 
 export function gatherOrderData() {
     const orderData = {
-        companyName: document.getElementById("companyName").value,
-        ico: document.getElementById("ico").value,
-        dic: document.getElementById("dic").value,
-        street: document.getElementById("street").value,
-        city: document.getElementById("city").value,
-        postalCode: document.getElementById("postalCode").value,
-        country: document.getElementById("country").value,
-        phone: document.getElementById("phone").value,
-        email: document.getElementById("email").value,
-        contactPerson: document.getElementById("contactPerson").value,
-        isVatRegistered: !!document.getElementById("dic").value,
+        companyName: document.getElementById("companyName")?.value || "",
+        ico: document.getElementById("ico")?.value || "",
+        dic: document.getElementById("dic")?.value || "",
+        street: document.getElementById("street")?.value || "",
+        city: document.getElementById("city")?.value || "",
+        postalCode: document.getElementById("postalCode")?.value || "",
+        country: document.getElementById("country")?.value || "CZ",
+        phone: document.getElementById("phone")?.value || "",
+        email: document.getElementById("email")?.value || "",
+        contactPerson: document.getElementById("contactPerson")?.value || "",
+        isVatRegistered: !!document.getElementById("dic")?.value,
         products: [],
         totalPrice: 0,
         totalQuantity: 0
@@ -54,26 +55,20 @@ export function gatherOrderData() {
 
 export function updateOrderSummary(currentCurrency) {
     const orderData = gatherOrderData();
-    const { totalPrice, totalQuantity } = orderData;
     const vatRate = getVATRate(orderData.country, orderData.isVatRegistered);
-    const vatAmount = calculateVAT(
-        totalPrice,
-        orderData.country,
-        orderData.isVatRegistered,
-    );
-    const totalWithVAT = totalPrice + vatAmount;
+    const vatAmount = calculateVAT(orderData.totalPrice, orderData.country, orderData.isVatRegistered);
+    const totalWithVAT = orderData.totalPrice + vatAmount;
 
-    document.getElementById("totalPrice").textContent = formatPrice(
-        totalPrice,
-        currentCurrency,
-    );
-    document.getElementById("totalQuantity").textContent = totalQuantity;
-    document.getElementById("vatAmount").textContent =
-        `${formatPrice(vatAmount, currentCurrency)} (${(vatRate * 100).toFixed(0)}%)`;
-    document.getElementById("totalWithVAT").textContent = formatPrice(
-        totalWithVAT,
-        currentCurrency,
-    );
+    // Update cart items
+    updateCartItems(orderData.products, currentCurrency);
+
+    // Update summary values
+    document.getElementById("totalPrice").textContent = formatPrice(orderData.totalPrice, currentCurrency);
+    document.getElementById("vatAmount").textContent = `${formatPrice(vatAmount, currentCurrency)} (${(vatRate * 100).toFixed(0)}%)`;
+    document.getElementById("totalWithVAT").textContent = formatPrice(totalWithVAT, currentCurrency);
+
+    // Update cart badge
+    updateCartBadge(orderData.totalQuantity);
 }
 
 export async function sendOrder(orderData, currentCurrency) {
@@ -195,24 +190,23 @@ export async function sendOrder(orderData, currentCurrency) {
 }
 
 export function clearOrder() {
-    // Clear all number inputs
-    document.querySelectorAll('input[type="number"]').forEach((input) => {
-        input.value = 0;
-        const productId = input.dataset.productId;
-        const variant = input.dataset.variant;
-        localStorage.removeItem(`order_${productId}_${variant}`);
-    });
-
-    // Reset all ordered quantities in table cells
-    document.querySelectorAll("table tbody tr").forEach((row) => {
-        const orderedCell = row.querySelector("td:nth-child(3)");
-        if (orderedCell) {
-            const span = orderedCell.querySelector("span");
-            if (span) {
-                span.textContent = "0";
-            }
+    // Clear all order data from localStorage
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+        if (key.startsWith("order_")) {
+            localStorage.removeItem(key);
         }
     });
 
+    // Reset all input fields to 0
+    const inputs = document.querySelectorAll('input[type="number"]');
+    inputs.forEach((input) => {
+        input.value = 0;
+    });
+
+    // Update order summary
     updateOrderSummary();
+    
+    // Update cart badge
+    updateCartBadge(0);
 }

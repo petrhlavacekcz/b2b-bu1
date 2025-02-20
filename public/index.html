@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="cs">
-    <!-- Previous head content remains the same -->
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,8 +9,8 @@
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
             rel="stylesheet"
         />
+        <link rel="stylesheet" href="css/styles.css">
         <style>
-            /* Previous styles remain the same */
             body {
                 font-family: "Inter", sans-serif;
             }
@@ -41,98 +40,369 @@
                 min-width: 60px;
                 width: 60px;
             }
-            .sticky-header {
-                position: sticky;
-                top: 0;
-                z-index: 10;
-                background-color: #f3f4f6;
-            }
             .sticky-column {
                 position: sticky;
                 left: 0;
-                z-index: 5;
                 background-color: white;
-            }
-            .order-table {
-                overflow-x: auto;
-                position: relative;
-            }
-            .order-table table {
-                border-collapse: separate;
-                border-spacing: 0;
-            }
-            .modal-open .sticky-header,
-            .modal-open .sticky-column {
-                position: static;
-            }
-            .modal-open {
-                overflow: hidden;
-            }
-            #orderPreviewModal {
-                overflow-y: auto;
-            }
-            .category-header {
-                cursor: pointer;
-            }
-            .category-content {
-                transition:
-                    max-height 0.3s ease-out,
-                    opacity 0.3s ease-out;
-                max-height: 2000px;
-                opacity: 1;
-                overflow: hidden;
-            }
-            .category-content.collapsed {
-                max-height: 0;
-                opacity: 0;
+                z-index: 10;
             }
 
-            .product-image-button {
-                cursor: pointer;
-                transition: opacity 0.2s;
+            .header-icon {
+                width: 24px;
+                height: 24px;
+                color: #6B7280;
             }
-
-            .product-image-button:hover {
-                opacity: 0.7;
-            }
-
-            .product-image-modal {
-                display: block;
-                background-color: white;
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            }
-
-            .product-image-modal img {
-                max-width: 200px;
-                max-height: 200px;
-                display: block;
-            }
-
-            /* New styles for the scrollable modal */
-            #orderModal {
-                overflow-y: auto;
-                max-height: 100vh;
-                display: none;
-                align-items: flex-start;
-                padding: 2rem;
-            }
-
-            #orderModal > div {
-                margin: auto;
-                max-height: calc(100vh - 4rem);
-                overflow-y: auto;
-            }
-
-            #modalContent {
-                max-height: calc(100vh - 12rem);
-                overflow-y: auto;
+            .header-icon:hover {
+                color: #374151;
             }
         </style>
     </head>
     <body class="bg-gray-100">
+        <!-- New Header -->
+        <header class="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Logo -->
+                    <div class="font-bold text-xl text-gray-900">BU1 B2B</div>
+
+                    <!-- Search Bar -->
+                    <div class="flex-1 max-w-2xl mx-8">
+                        <div class="relative">
+                            <input type="text" 
+                                placeholder="Search products..." 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            >
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Icons -->
+                    <div class="flex items-center space-x-6">
+                        <!-- Filter Icon -->
+                        <button id="filterButton" class="relative header-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                            </svg>
+                        </button>
+
+                        <!-- Cart Icon -->
+                        <button class="relative header-icon" id="cartButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="9" cy="21" r="1"/>
+                                <circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                            </svg>
+                            <span class="cart-badge" id="cartBadge">0</span>
+                        </button>
+
+                        <!-- Logout Icon -->
+                        <button class="header-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                        </button>
+
+                        <!-- Clear Order Icon -->
+                        <button class="header-icon" id="clearOrderBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Cart Panel -->
+        <div id="cartPanel" class="fixed right-0 top-0 h-full w-[600px] bg-white shadow-lg transform translate-x-full transition-transform duration-300 ease-in-out z-50">
+            <div class="h-full flex flex-col">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Košík</h2>
+                    <button id="closeCartButton" class="text-gray-400 hover:text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 bg-gray-50">Produkt</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 bg-gray-50">Varianta</th>
+                                <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 bg-gray-50">Počet</th>
+                                <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 bg-gray-50">Cena bez DPH</th>
+                                <th class="px-3 py-2 w-8 bg-gray-50"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="cartItems">
+                            <!-- Cart items will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 border-t border-gray-200">
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-500">Celkem bez DPH:</span>
+                            <span class="text-sm font-medium text-gray-900" id="totalPrice">0 Kč</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-500">DPH:</span>
+                            <span class="text-sm font-medium text-gray-900" id="vatAmount">0 Kč (21%)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-500">Celkem s DPH:</span>
+                            <span class="text-sm font-medium text-gray-900" id="totalWithVAT">0 Kč</span>
+                        </div>
+                    </div>
+                    <button id="previewOrderBtn" class="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Pokračovat k objednávce
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Overlay -->
+        <div id="cartOverlay" class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none z-40"></div>
+
+        <!-- Order Preview Modal -->
+        <div id="orderModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl mx-4 my-6 overflow-y-auto max-h-[90vh]">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 id="modalTitle" class="text-2xl font-bold">Náhled objednávky</h2>
+                        <button class="header-icon" id="closeModalButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Order Information Form -->
+                        <div class="bg-white shadow-lg rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Informace o objednávce</h3>
+                            <form id="orderForm" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="col-span-1">
+                                        <label for="ico" class="block text-sm font-medium text-gray-700">IČO</label>
+                                        <div class="mt-1 flex">
+                                            <input type="text" id="ico" name="ico" maxlength="8"
+                                                class="flex-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                                required
+                                            />
+                                            <button type="button" id="loadCompanyInfo"
+                                                class="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                            >
+                                                Načíst z ARES
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label for="dic" class="block text-sm font-medium text-gray-700">DIČ (VAT ID)</label>
+                                        <input type="text" id="dic" name="dic"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                        />
+                                    </div>
+                                    <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                                        <label for="companyName" class="block text-sm font-medium text-gray-700">Název společnosti</label>
+                                        <input type="text" id="companyName" name="companyName"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                            required
+                                        />
+                                    </div>
+                                    <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                                        <label for="contactPerson" class="block text-sm font-medium text-gray-700">Kontaktní osoba</label>
+                                        <input type="text" id="contactPerson" name="contactPerson"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                            required
+                                        />
+                                    </div>
+                                    <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                                        <label for="street" class="block text-sm font-medium text-gray-700">Ulice a číslo</label>
+                                        <input type="text" id="street" name="street"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label for="city" class="block text-sm font-medium text-gray-700">Město</label>
+                                        <input type="text" id="city" name="city"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label for="postalCode" class="block text-sm font-medium text-gray-700">PSČ</label>
+                                        <input type="text" id="postalCode" name="postalCode"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label for="country" class="block text-sm font-medium text-gray-700">Země</label>
+                                        <select id="country" name="country"
+                                            class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            required
+                                        >
+                                            <option value="">Vyberte zemi</option>
+                                            <option value="CZ">Česká republika</option>
+                                            <option value="SK">Slovensko</option>
+                                            <option value="DE">Německo</option>
+                                            <option value="AT">Rakousko</option>
+                                            <option value="PL">Polsko</option>
+                                            <option value="HU">Maďarsko</option>
+                                            <option value="FR">Francie</option>
+                                            <option value="IT">Itálie</option>
+                                            <option value="ES">Španělsko</option>
+                                            <option value="NL">Nizozemsko</option>
+                                            <option value="BE">Belgie</option>
+                                            <option value="SE">Švédsko</option>
+                                            <option value="DK">Dánsko</option>
+                                            <option value="FI">Finsko</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="phone" class="block text-sm font-medium text-gray-700">Telefon</label>
+                                        <input type="tel" id="phone" name="phone"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                            required
+                                        />
+                                    </div>
+                                    <div class="col-span-1 md:col-span-2 lg:col-span-1">
+                                        <label for="email" class="block text-sm font-medium text-gray-700">E-mail</label>
+                                        <input type="email" id="email" name="email"
+                                            class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Order Preview -->
+                        <div class="bg-white shadow-lg rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4">Přehled položek</h3>
+                            <div id="modalContent" class="space-y-4">
+                                <!-- Order items will be dynamically inserted here -->
+                            </div>
+                            <div class="mt-6 pt-6 border-t border-gray-200">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-medium">Celková cena bez DPH:</span>
+                                    <span id="modalTotalPrice"></span>
+                                </div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-medium">DPH:</span>
+                                    <span id="modalVatAmount"></span>
+                                </div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-medium">Celková cena s DPH:</span>
+                                    <span id="modalTotalWithVAT"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-medium">Celkový počet kusů:</span>
+                                    <span id="modalTotalQuantity"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="modalActions" class="mt-6 flex justify-end space-x-4">
+                        <button
+                            id="cancelOrder"
+                            class="px-6 py-3 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 font-medium"
+                        >
+                            Zrušit
+                        </button>
+                        <button
+                            id="confirmOrder"
+                            class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+                        >
+                            Potvrdit objednávku
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Panel -->
+        <div id="filterPanel" class="fixed right-0 top-0 h-full w-[400px] bg-white shadow-lg transform translate-x-full transition-transform duration-300 ease-in-out z-50">
+            <div class="h-full flex flex-col">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Filtry</h2>
+                    <button id="closeFilterButton" class="text-gray-400 hover:text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4">
+                    <!-- Sorting Section -->
+                    <div class="mb-6">
+                        <label for="sort" class="block text-sm font-medium text-gray-700 mb-2">Seřadit podle:</label>
+                        <select id="sort" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="name">Název</option>
+                            <option value="priceAsc">Cena (od nejnižší)</option>
+                            <option value="priceDesc">Cena (od nejvyšší)</option>
+                        </select>
+                    </div>
+
+                    <!-- Categories Section -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-medium text-gray-700">Kategorie:</h3>
+                            <button id="resetCategories" class="text-sm text-blue-600 hover:text-blue-800">
+                                Resetovat
+                            </button>
+                        </div>
+                        <div id="categoriesList" class="space-y-2 border rounded-md p-2">
+                            <!-- Categories will be dynamically inserted here -->
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">
+                            Přetáhněte kategorie pro změnu pořadí
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Overlay -->
+        <div id="filterOverlay" class="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none z-40"></div>
+
+        <!-- Main Content with padding-top to account for fixed header -->
+        <div id="mainContent" class="hidden pt-24">
+            <div class="container mx-auto px-4 py-8">
+                <!-- Loading indicator -->
+                <div id="loading" class="text-center py-4">Načítání dat...</div>
+
+                <!-- Sorting and currency controls -->
+                <div class="flex justify-between items-center mb-4 sorting-currency-wrapper">
+                    <div class="flex items-center">
+                        <label for="currency" class="mr-2">Měna:</label>
+                        <select id="currency" class="border rounded p-1">
+                            <option value="CZK">CZK</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tables Container -->
+                <div id="tablesContainer" class="overflow-x-auto">
+                    <!-- Tables will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Keep existing modal and other elements -->
         <!-- Password Modal -->
         <div
             id="passwordModal"
@@ -184,358 +454,6 @@
                         >Zpracováním osobních údajů</a
                     >.
                 </p>
-            </div>
-        </div>
-
-        <!-- Order Preview Modal -->
-        <div
-            id="orderModal"
-            class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50"
-        >
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4">
-                <div class="p-6">
-                    <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
-                    <div id="modalContent" class="space-y-4"></div>
-                    <div
-                        id="modalActions"
-                        class="mt-6 flex justify-end space-x-4"
-                    >
-                        <button
-                            id="cancelOrder"
-                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                        >
-                            Zrušit
-                        </button>
-                        <button
-                            id="confirmOrder"
-                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                            Potvrdit objednávku
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Rest of the content remains the same -->
-        <!-- Main Content -->
-        <div id="mainContent" class="hidden">
-            <div class="container mx-auto px-4 py-8">
-                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-                    <div class="p-6">
-                        <h1 class="text-2xl font-bold mb-4">BU1 sport - B2B objednávka</h1>
-                        
-                        <!-- Loading indicator -->
-                        <div id="loading" class="text-center py-4">Načítání dat...</div>
-
-                        <!-- Sorting and currency controls -->
-                        <div class="flex justify-between items-center mb-4 sorting-currency-wrapper">
-                            <div class="flex items-center">
-                                <label for="sort" class="mr-2">Seřadit podle:</label>
-                                <select id="sort" class="border rounded p-1">
-                                    <option value="name">Název</option>
-                                    <option value="priceAsc">Cena (od nejnižší)</option>
-                                    <option value="priceDesc">Cena (od nejvyšší)</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center">
-                                <label for="currency" class="mr-2">Měna:</label>
-                                <select id="currency" class="border rounded p-1">
-                                    <option value="CZK">CZK</option>
-                                    <option value="EUR">EUR</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Tables Container -->
-                        <div id="tablesContainer" class="overflow-x-auto">
-                            <!-- Category tables will be dynamically inserted here -->
-                        </div>
-
-                        <!-- Order Form -->
-                        <div class="mt-4">
-                            <button
-                                id="clearOrder"
-                                aria-label="Vyčisti objednávku"
-                                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-                            >
-                                Vyčisti objednávku
-                            </button>
-                        </div>
-                    </div>
-
-                    <div
-                        id="orderSummary"
-                        class="bg-white shadow-lg rounded-lg p-6 mt-6"
-                    >
-                        <!-- Previous order summary content remains unchanged -->
-                        <h2 class="text-2xl font-semibold mb-4">
-                            Souhrn objednávky
-                        </h2>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th
-                                            scope="col"
-                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            Položka
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                        >
-                                            Hodnota
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody
-                                    class="bg-white divide-y divide-gray-200"
-                                >
-                                    <tr>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                                        >
-                                            Celková cena bez DPH
-                                        </td>
-                                        <td
-                                            id="totalPrice"
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
-                                        ></td>
-                                    </tr>
-                                    <tr>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                                        >
-                                            DPH
-                                        </td>
-                                        <td
-                                            id="vatAmount"
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
-                                        ></td>
-                                    </tr>
-                                    <tr>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                                        >
-                                            Celková cena s DPH
-                                        </td>
-                                        <td
-                                            id="totalWithVAT"
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
-                                        ></td>
-                                    </tr>
-                                    <tr>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                                        >
-                                            Celkový počet kusů
-                                        </td>
-                                        <td
-                                            id="totalQuantity"
-                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
-                                        ></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="bg-white shadow-lg rounded-lg p-6 mt-6">
-                        <h2 class="text-2xl font-semibold mb-4">
-                            Informace o objednávce
-                        </h2>
-                        <form id="orderForm" class="space-y-4">
-                            <!-- Previous form content remains unchanged -->
-                            <div
-                                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                            >
-                                <div class="col-span-1">
-                                    <label
-                                        for="ico"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >IČO</label
-                                    >
-                                    <input
-                                        type="text"
-                                        id="ico"
-                                        name="ico"
-                                        maxlength="8"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        id="loadCompanyInfo"
-                                        class="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                    >
-                                        Načíst data z ARES
-                                    </button>
-                                </div>
-                                <div class="col-span-1">
-                                    <label
-                                        for="dic"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >DIČ (VAT ID)</label
-                                    >
-                                    <input
-                                        type="text"
-                                        id="dic"
-                                        name="dic"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                    />
-                                </div>
-                                <div
-                                    class="col-span-1 md:col-span-2 lg:col-span-1"
-                                >
-                                    <label
-                                        for="companyName"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >Název společnosti</label
-                                    >
-                                    <input
-                                        type="text"
-                                        id="companyName"
-                                        name="companyName"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                                <div
-                                    class="col-span-1 md:col-span-2 lg:col-span-1"
-                                >
-                                    <label
-                                        for="contactPerson"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >Kontaktní osoba</label
-                                    >
-                                    <input
-                                        type="text"
-                                        id="contactPerson"
-                                        name="contactPerson"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                                <div
-                                    class="col-span-1 md:col-span-2 lg:col-span-1"
-                                >
-                                    <label
-                                        for="street"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >Ulice a číslo</label
-                                    >
-                                    <input
-                                        type="text"
-                                        id="street"
-                                        name="street"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        for="city"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >Město</label
-                                    >
-                                    <input
-                                        type="text"
-                                        id="city"
-                                        name="city"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        for="postalCode"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >PSČ</label
-                                    >
-                                    <input
-                                        type="text"
-                                        id="postalCode"
-                                        name="postalCode"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        for="country"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >Země</label
-                                    >
-                                    <select
-                                        id="country"
-                                        name="country"
-                                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        required
-                                    >
-                                        <option value="">Vyberte zemi</option>
-                                        <option value="CZ">
-                                            Česká republika
-                                        </option>
-                                        <option value="SK">Slovensko</option>
-                                        <option value="DE">Německo</option>
-                                        <option value="AT">Rakousko</option>
-                                        <option value="PL">Polsko</option>
-                                        <option value="HU">Maďarsko</option>
-                                        <option value="FR">Francie</option>
-                                        <option value="IT">Itálie</option>
-                                        <option value="ES">Španělsko</option>
-                                        <option value="NL">Nizozemsko</option>
-                                        <option value="BE">Belgie</option>
-                                        <option value="SE">Švédsko</option>
-                                        <option value="DK">Dánsko</option>
-                                        <option value="FI">Finsko</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label
-                                        for="phone"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >Telefon</label
-                                    >
-                                    <input
-                                        type="tel"
-                                        id="phone"
-                                        name="phone"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                                <div
-                                    class="col-span-1 md:col-span-2 lg:col-span-1"
-                                >
-                                    <label
-                                        for="email"
-                                        class="block text-sm font-medium text-gray-700"
-                                        >E-mail</label
-                                    >
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <button
-                                    type="button"
-                                    id="submitOrder"
-                                    class="inline-flex justify-center py-4 px-6 border border-transparent shadow-sm text-lg font-bold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                >
-                                    Náhled a potvrzení objednávky
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             </div>
         </div>
 

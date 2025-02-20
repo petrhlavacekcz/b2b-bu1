@@ -20,17 +20,202 @@ import {
     clearOrder,
     gatherOrderData,
 } from "./orderHandling.js";
+import { initializeCart, updateCartBadge } from "./cart.js";
+import { initializeCategories, resetCategories } from "./filterCategories.js";
+import { initFloatingHeaders } from "./floatingHeader.js";
 
 let allProducts = {};
 let currentCurrency = "CZK";
 
+// Password validation
+window.addEventListener("load", () => {
+    const validPasswords = [
+        "bu1b2bheslo",
+        "Sportfotbal5?",
+        "Sali34:",
+        "PartnerBU1?",
+        "?FutbalShop92",
+        "Gol1Sport!?",
+        "HSportB2b?",
+        "JanalikB2B?",
+        "Mtrade24?!?",
+        "SportJecha!2024?",
+        "Decathlon?1!20",
+        "SKKeeperSPORT?10",
+        "COMSport23?",
+        "24?Foremo",
+        "GAZAsport?1!",
+        "Kadidlo?2!",
+        "KOVAC2024?!?",
+        "FS?Glkp!24",
+        "Havros!Praha25",
+        "BuchticSK?25!"
+    ];
+
+    const passwordModal = document.getElementById("passwordModal");
+    const mainContent = document.getElementById("mainContent");
+    const passwordInput = document.getElementById("passwordInput");
+    const submitButton = document.getElementById("submitPassword");
+    const passwordError = document.getElementById("passwordError");
+
+    submitButton.addEventListener("click", () => {
+        const password = passwordInput.value;
+        if (validPasswords.includes(password)) {
+            passwordModal.style.display = "none";
+            mainContent.classList.remove("hidden");
+            passwordError.classList.add("hidden");
+            
+            // Initialize cart functionality
+            initializeCart();
+            
+            // Initialize the application
+            populateTable();
+            
+            // Initialize filter panel
+            initializeFilterPanel();
+            
+            // Add currency change listener
+            document.getElementById("currency").addEventListener("change", changeCurrency);
+        } else {
+            passwordError.classList.remove("hidden");
+        }
+    });
+
+    passwordInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            submitButton.click();
+        }
+    });
+});
+
+// Initialize application
+function initializeApp() {
+    console.log("Window loaded");
+    populateTable();
+
+    // Initialize filter panel functionality
+    initializeFilterPanel();
+
+    document.getElementById("currency").addEventListener("change", changeCurrency);
+
+    // Clear order button in header
+    const clearOrderBtn = document.getElementById("clearOrderBtn");
+    if (clearOrderBtn) {
+        clearOrderBtn.addEventListener("click", () => {
+            if (confirm("Opravdu chcete vymazat celou objednávku?")) {
+                clearOrder();
+            }
+        });
+    }
+
+    // Preview order button in cart
+    const previewOrderBtn = document.getElementById("previewOrderBtn");
+    if (previewOrderBtn) {
+        previewOrderBtn.addEventListener("click", showOrderPreview);
+    }
+
+    // Modal close button
+    const closeModalButton = document.getElementById("closeModalButton");
+    if (closeModalButton) {
+        closeModalButton.addEventListener("click", closeModal);
+    }
+
+    // Form validation and submission
+    const orderForm = document.getElementById("orderForm");
+    if (orderForm) {
+        // ... rest of the initialization code ...
+    }
+}
+
+function initializeFilterPanel() {
+    const filterButton = document.getElementById('filterButton');
+    console.log('Filter button:', filterButton);
+    const filterPanel = document.getElementById('filterPanel');
+    console.log('Filter panel:', filterPanel);
+    const filterOverlay = document.getElementById('filterOverlay');
+    const closeFilterButton = document.getElementById('closeFilterButton');
+    const sortSelect = document.getElementById('sort');
+    const resetCategoriesButton = document.getElementById('resetCategories');
+
+    if (!filterButton || !filterPanel || !filterOverlay || !closeFilterButton || !sortSelect) {
+        console.error('Some filter elements are missing:', {
+            filterButton,
+            filterPanel,
+            filterOverlay,
+            closeFilterButton,
+            sortSelect
+        });
+        return;
+    }
+
+    // Open filter panel
+    filterButton.addEventListener('click', (e) => {
+        console.log('Filter button clicked');
+        e.preventDefault();
+        filterPanel.classList.add('open');
+        filterOverlay.classList.add('open');
+    });
+
+    // Close filter panel
+    const closeFilterPanel = () => {
+        filterPanel.classList.remove('open');
+        filterOverlay.classList.remove('open');
+    };
+
+    closeFilterButton.addEventListener('click', closeFilterPanel);
+    filterOverlay.addEventListener('click', closeFilterPanel);
+
+    // Handle sorting
+    sortSelect.addEventListener('change', () => {
+        sortAndDisplayProducts();
+    });
+
+    // Handle reset categories
+    if (resetCategoriesButton) {
+        resetCategoriesButton.addEventListener('click', resetCategories);
+    }
+}
+
+// Initialize cart when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    initializeCart();
+    updateCartCount();
+});
+
+// Update cart badge when order changes
+function updateCartCount() {
+    const orderData = gatherOrderData();
+    const totalItems = orderData.totalQuantity;
+    updateCartBadge(totalItems);
+}
+
+// Add event listener for input changes to update cart badge
+document.addEventListener('input', (e) => {
+    if (e.target.matches('input[type="number"]')) {
+        updateCartCount();
+        updateOrderSummary(currentCurrency);
+    }
+});
+
 async function populateTable() {
+    const loadingElement = document.getElementById("loading");
+    const mainContent = document.getElementById("mainContent");
+    
+    if (!loadingElement || !mainContent) {
+        console.error("Required elements not found");
+        return;
+    }
+
     try {
         console.log("Starting data loading...");
+        loadingElement.textContent = "Načítání dat...";
         
         // 1. Fetch all categories
         const categories = await fetchCategories();
         console.log("Categories loaded:", categories);
+
+        // Initialize categories in filter panel
+        initializeCategories(categories);
 
         // 2. Fetch all products at once
         const allProductsData = await fetchAllProducts();
@@ -41,6 +226,14 @@ async function populateTable() {
         console.log("Products categorized:", categorizedProducts);
 
         // Create tables for each category
+        const tablesContainer = document.getElementById("tablesContainer");
+        if (!tablesContainer) {
+            throw new Error("Tables container not found");
+        }
+
+        // Clear existing tables
+        tablesContainer.innerHTML = '';
+
         for (const category of categories) {
             const categoryId = category.category_id;
             const categoryName = category.name;
@@ -53,25 +246,24 @@ async function populateTable() {
                 continue;
             }
             
-            // Create table container if it doesn't exist
-            let tableContainer = document.getElementById(`category_${categoryId}`);
-            if (!tableContainer) {
-                tableContainer = document.createElement('div');
-                tableContainer.id = `category_${categoryId}`;
-                tableContainer.className = 'mb-8';
-                tableContainer.innerHTML = `
-                    <h2 class="text-xl font-bold mb-4">${categoryName}</h2>
-                    <div class="order-table">
-                        <table id="table_${categoryId}" class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr></tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200"></tbody>
-                        </table>
-                    </div>
-                `;
-                document.getElementById("tablesContainer").appendChild(tableContainer);
-            }
+            // Create table container
+            let tableContainer = document.createElement('div');
+            tableContainer.id = `category_${categoryId}`;
+            tableContainer.className = 'category-container';
+            tableContainer.innerHTML = `
+                <div class="category-header">
+                    <h2 class="text-xl font-bold">${categoryName}</h2>
+                </div>
+                <div class="order-table">
+                    <table id="table_${categoryId}" class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr></tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            `;
+            tablesContainer.appendChild(tableContainer);
 
             // Filter products with stock
             allProducts[categoryId] = Object.entries(categoryProducts).filter(([, product]) => {
@@ -91,12 +283,12 @@ async function populateTable() {
         }
 
         if (Object.keys(allProducts).every(catId => allProducts[catId].length === 0)) {
-            document.getElementById("loading").textContent = "No products available.";
+            loadingElement.textContent = "Žádné produkty k dispozici.";
             return;
         }
 
         console.log("Tables populated with data.");
-        document.getElementById("loading").style.display = "none";
+        loadingElement.style.display = "none";
 
         // Add event listeners to all number inputs
         document.querySelectorAll('input[type="number"]').forEach((input) => {
@@ -105,10 +297,14 @@ async function populateTable() {
 
         updateOrderSummary(currentCurrency);
         addImageButtonListeners();
+        
+        // Initialize floating headers
+        initFloatingHeaders();
     } catch (error) {
         console.error("Error populating table:", error);
-        document.getElementById("loading").textContent =
-            "Error loading data. Please try again later.";
+        if (loadingElement) {
+            loadingElement.textContent = "Chyba při načítání dat. Prosím zkuste to znovu později.";
+        }
     }
 }
 
@@ -252,44 +448,27 @@ async function loadCompanyInfo() {
 }
 
 function showOrderPreview() {
-    console.log("showOrderPreview called"); // Debug log
+    console.log("showOrderPreview called");
     const orderData = gatherOrderData();
     if (orderData.products.length === 0) {
         alert("Prosím vyberte alespoň jeden produkt do objednávky.");
         return;
     }
 
-    if (!validateEmail(orderData.email)) {
-        alert("Zadejte platný e-mail.");
-        return;
-    }
-
-    if (!validatePhoneNumber(orderData.phone)) {
-        alert(
-            "Zadejte platné telefonní číslo (minimálně 9 číslic, povolené znaky: +, -, (, )).",
-        );
-        return;
-    }
-
-    const vatRate = getVATRate(orderData.country, orderData.isVatRegistered);
-    const vatAmount = calculateVAT(
-        orderData.totalPrice,
-        orderData.country,
-        orderData.isVatRegistered,
-    );
-    const totalWithVAT = orderData.totalPrice + vatAmount;
-
     const modal = document.getElementById("orderModal");
     const modalContent = document.getElementById("modalContent");
+    const modalTotalPrice = document.getElementById("modalTotalPrice");
+    const modalVatAmount = document.getElementById("modalVatAmount");
+    const modalTotalWithVAT = document.getElementById("modalTotalWithVAT");
+    const modalTotalQuantity = document.getElementById("modalTotalQuantity");
 
-    // Make sure modal exists
+    // Make sure modal elements exist
     if (!modal || !modalContent) {
-        console.error("Modal elements not found:", { modal, modalContent });
+        console.error("Modal elements not found");
         return;
     }
 
-    document.getElementById("modalTitle").textContent = "Náhled objednávky";
-
+    // Populate order items
     modalContent.innerHTML = `
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -315,22 +494,46 @@ function showOrderPreview() {
                     .join("")}
             </tbody>
         </table>
-        <div class="mt-4">
-            <p class="font-bold">Celková cena bez DPH: ${formatPrice(orderData.totalPrice, currentCurrency)}</p>
-            <p>DPH ${(vatRate * 100).toFixed(0)}%: ${formatPrice(vatAmount, currentCurrency)}</p>
-            <p class="font-bold">Celková cena s DPH: ${formatPrice(totalWithVAT, currentCurrency)}</p>
-            <p>Celkový počet kusů: ${orderData.totalQuantity}</p>
-        </div>
     `;
 
-    document.getElementById("confirmOrder").style.display = "inline-block";
-    document.getElementById("modalActions").style.display = "flex";
-
-    // Show the modal by setting display style directly
+    updateModalTotals();
+    
+    // Show the modal
     modal.style.display = "flex";
-
-    console.log("Modal should be visible now"); // Debug log
 }
+
+// Function to update modal totals
+function updateModalTotals() {
+    const orderData = gatherOrderData();
+    const vatRate = getVATRate(orderData.country, orderData.isVatRegistered);
+    const vatAmount = calculateVAT(orderData.totalPrice, orderData.country, orderData.isVatRegistered);
+    const totalWithVAT = orderData.totalPrice + vatAmount;
+
+    const modalTotalPrice = document.getElementById("modalTotalPrice");
+    const modalVatAmount = document.getElementById("modalVatAmount");
+    const modalTotalWithVAT = document.getElementById("modalTotalWithVAT");
+    const modalTotalQuantity = document.getElementById("modalTotalQuantity");
+
+    if (modalTotalPrice) modalTotalPrice.textContent = formatPrice(orderData.totalPrice, currentCurrency);
+    if (modalVatAmount) modalVatAmount.textContent = `${(vatRate * 100).toFixed(0)}% (${formatPrice(vatAmount, currentCurrency)})`;
+    if (modalTotalWithVAT) modalTotalWithVAT.textContent = formatPrice(totalWithVAT, currentCurrency);
+    if (modalTotalQuantity) modalTotalQuantity.textContent = orderData.totalQuantity;
+}
+
+// Make functions available globally
+window.showOrderPreview = showOrderPreview;
+window.updateModalTotals = updateModalTotals;
+
+// Add event listener for country change
+window.addEventListener("load", () => {
+    const countrySelect = document.getElementById("country");
+    if (countrySelect) {
+        countrySelect.addEventListener("change", () => {
+            console.log("Country changed, updating totals");
+            updateModalTotals();
+        });
+    }
+});
 
 function closeModal() {
     const modal = document.getElementById("orderModal");
@@ -371,136 +574,133 @@ function updateVATDisplay() {
 
 // Event Listeners
 window.addEventListener("load", () => {
-    const validPasswords = [
-        "bu1b2bheslo",
-        "Sportfotbal5?",
-        "Sali34:",
-        "PartnerBU1?",
-        "?FutbalShop92",
-        "Gol1Sport!?",
-        "HSportB2b?",
-        "JanalikB2B?",
-        "Mtrade24?!?",
-        "SportJecha!2024?",
-        "Decathlon?1!20",
-        "SKKeeperSPORT?10",
-        "COMSport23?",
-        "24?Foremo",
-        "GAZAsport?1!",
-        "Kadidlo?2!",
-        "KOVAC2024?!?",
-        "FS?Glkp!24",
-        "BuchticSK?25!"
-    ];
-    const passwordModal = document.getElementById("passwordModal");
-    const passwordInput = document.getElementById("passwordInput");
-    const submitPassword = document.getElementById("submitPassword");
-    const passwordError = document.getElementById("passwordError");
-    const mainContent = document.getElementById("mainContent");
-
-    passwordModal.classList.remove("hidden");
-
-    submitPassword.addEventListener("click", function () {
-        const enteredPassword = passwordInput.value;
-
-        if (!validPasswords.includes(enteredPassword)) {
-            passwordError.classList.remove("hidden");
-        } else {
-            passwordError.classList.add("hidden");
-            passwordModal.classList.add("hidden");
-            mainContent.classList.remove("hidden");
-        }
-    });
-});
-
-window.addEventListener("load", () => {
     console.log("Window loaded");
     populateTable();
 
-    document
-        .getElementById("sort")
-        .addEventListener("change", sortAndDisplayProducts);
-    document
-        .getElementById("currency")
-        .addEventListener("change", changeCurrency);
+    document.getElementById("sort").addEventListener("change", sortAndDisplayProducts);
+    document.getElementById("currency").addEventListener("change", changeCurrency);
 
-    const loadCompanyInfoButton = document.getElementById("loadCompanyInfo");
-    if (loadCompanyInfoButton) {
-        loadCompanyInfoButton.addEventListener("click", loadCompanyInfo);
-        console.log("Event listener added for loadCompanyInfo button");
-    } else {
-        console.error("loadCompanyInfo button not found");
+    // Clear order button in header
+    const clearOrderBtn = document.getElementById("clearOrderBtn");
+    if (clearOrderBtn) {
+        clearOrderBtn.addEventListener("click", () => {
+            if (confirm("Opravdu chcete vymazat celou objednávku?")) {
+                clearOrder();
+            }
+        });
     }
 
-    // Add event listener for the submit order button
-    const submitOrderButton = document.getElementById("submitOrder");
-    if (submitOrderButton) {
-        submitOrderButton.addEventListener("click", showOrderPreview);
-        console.log("Event listener added for submitOrder button");
-    } else {
-        console.error("submitOrder button not found");
+    // Preview order button in cart
+    const previewOrderBtn = document.getElementById("previewOrderBtn");
+    if (previewOrderBtn) {
+        previewOrderBtn.addEventListener("click", showOrderPreview);
     }
 
-    const confirmOrderButton = document.getElementById("confirmOrder");
-    if (confirmOrderButton) {
-        confirmOrderButton.addEventListener("click", async () => {
-            document.getElementById("modalTitle").textContent = "";
-            document.getElementById("modalActions").style.display = "none"; // Hide the action buttons
+    // Modal close button
+    const closeModalButton = document.getElementById("closeModalButton");
+    if (closeModalButton) {
+        closeModalButton.addEventListener("click", closeModal);
+    }
 
-            document.getElementById("modalContent").innerHTML = `
-                <div class="flex justify-center items-center">
-                    <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
-                    </svg>
-                </div>
-            `;
+    // Form validation and submission
+    const orderForm = document.getElementById("orderForm");
+    if (orderForm) {
+        // Email validation
+        const emailInput = document.getElementById("email");
+        if (emailInput) {
+            emailInput.addEventListener("blur", function() {
+                if (!validateEmail(this.value)) {
+                    this.classList.add("border-red-500");
+                    alert("Prosím zadejte platný email.");
+                } else {
+                    this.classList.remove("border-red-500");
+                }
+            });
+        }
 
+        // Phone validation
+        const phoneInput = document.getElementById("phone");
+        if (phoneInput) {
+            phoneInput.addEventListener("blur", function() {
+                if (!validatePhoneNumber(this.value)) {
+                    this.classList.add("border-red-500");
+                    alert("Prosím zadejte platné telefonní číslo (minimálně 9 číslic, povolené znaky: +, -, (, )).");
+                } else {
+                    this.classList.remove("border-red-500");
+                }
+            });
+        }
+
+        // Load company info from ARES
+        const loadCompanyInfoBtn = document.getElementById("loadCompanyInfo");
+        if (loadCompanyInfoBtn) {
+            loadCompanyInfoBtn.addEventListener("click", loadCompanyInfo);
+        }
+
+        // VAT display update
+        const countrySelect = document.getElementById("country");
+        const dicInput = document.getElementById("dic");
+        if (countrySelect && dicInput) {
+            countrySelect.addEventListener("change", updateVATDisplay);
+            dicInput.addEventListener("input", updateVATDisplay);
+        }
+    }
+
+    // Order confirmation
+    const confirmOrderBtn = document.getElementById("confirmOrder");
+    if (confirmOrderBtn) {
+        confirmOrderBtn.addEventListener("click", async () => {
             const orderData = gatherOrderData();
-            await sendOrder(orderData, currentCurrency);
+
+            // Validate form
+            if (!validateEmail(orderData.email)) {
+                alert("Prosím zadejte platný email.");
+                return;
+            }
+
+            if (!validatePhoneNumber(orderData.phone)) {
+                alert("Prosím zadejte platné telefonní číslo.");
+                return;
+            }
+
+            // Show loading state
+            const modalContent = document.getElementById("modalContent");
+            const modalActions = document.getElementById("modalActions");
+            if (modalContent && modalActions) {
+                modalActions.style.display = "none";
+                modalContent.innerHTML = `
+                    <div class="flex justify-center items-center p-8">
+                        <svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="ml-3 text-lg font-medium">Odesílání objednávky...</span>
+                    </div>
+                `;
+            }
+
+            try {
+                await sendOrder(orderData, currentCurrency);
+                closeModal();
+            } catch (error) {
+                console.error("Error sending order:", error);
+                if (modalContent) {
+                    modalContent.innerHTML = `
+                        <div class="text-center text-red-600 p-4">
+                            Došlo k chybě při odesílání objednávky. Prosím zkuste to znovu později.
+                        </div>
+                    `;
+                }
+                if (modalActions) {
+                    modalActions.style.display = "flex";
+                }
+            }
         });
-    } else {
-        console.error("confirmOrder button not found");
     }
 
-    const cancelOrderButton = document.getElementById("cancelOrder");
-    if (cancelOrderButton) {
-        cancelOrderButton.addEventListener("click", closeModal);
-    } else {
-        console.error("cancelOrder button not found");
+    // Cancel order
+    const cancelOrderBtn = document.getElementById("cancelOrder");
+    if (cancelOrderBtn) {
+        cancelOrderBtn.addEventListener("click", closeModal);
     }
-
-    document.getElementById("email").addEventListener("blur", function () {
-        if (!validateEmail(this.value)) {
-            this.classList.add("border-red-500");
-            alert("Please enter a valid email address.");
-        } else {
-            this.classList.remove("border-red-500");
-        }
-    });
-
-    document.getElementById("phone").addEventListener("blur", function () {
-        if (!validatePhoneNumber(this.value)) {
-            this.classList.add("border-red-500");
-            alert(
-                "Please enter a valid phone number (minimum 9 digits, allowed characters: +, -, (, )).",
-            );
-        } else {
-            this.classList.remove("border-red-500");
-        }
-    });
-
-    document.querySelectorAll(".category-header").forEach((header) => {
-        header.addEventListener("click", () => {
-            const category = header.dataset.category;
-            toggleCategory(category);
-        });
-    });
-
-    document
-        .getElementById("country")
-        .addEventListener("change", updateVATDisplay);
-    document.getElementById("dic").addEventListener("input", updateVATDisplay);
-
-    document.getElementById("clearOrder").addEventListener("click", clearOrder);
 });
