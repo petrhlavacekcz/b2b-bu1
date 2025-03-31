@@ -49,6 +49,7 @@ window.addEventListener("load", () => {
         "KOVAC2024?!?",
         "FS?Glkp!24",
         "Havros!Praha25",
+        "1905Klokani!",
         "BuchticSK?25!"
     ];
 
