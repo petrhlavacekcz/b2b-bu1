@@ -50,7 +50,11 @@ window.addEventListener("load", () => {
         "FS?Glkp!24",
         "Havros!Praha25",
         "1905Klokani!",
-        "BuchticSK?25!"
+        "Kromeriz25?!",
+        "BuchticSK?25!",
+        "ElveSportBr?25!",
+        "ElveSportLe?25!",
+        "GKsLeague?25!"
     ];
 
     const passwordModal = document.getElementById("passwordModal");
