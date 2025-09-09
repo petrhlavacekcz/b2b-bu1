@@ -1,4 +1,8 @@
-import { fetchCategories, fetchAllProducts, categorizeProducts } from "./api.js";
+import {
+    fetchCategories,
+    fetchAllProducts,
+    categorizeProducts,
+} from "./api.js";
 import {
     getVariantSizes,
     getVATRate,
@@ -54,7 +58,16 @@ window.addEventListener("load", () => {
         "BuchticSK?25!",
         "ElveSportBr?25!",
         "ElveSportLe?25!",
-        "GKsLeague?25!"
+        "MFKK03?",
+        "GKsLeague?25!",
+        "DenChudy1?",
+        "MFKZV1902?!",
+        "Foremo25?!",
+        "HFKO25?!",
+        "FKnj25?!",
+        "LastyPico25?!",
+        "ARTISBrno25?!",
+        "Gazza25?!",
     ];
 
     const passwordModal = document.getElementById("passwordModal");
@@ -69,18 +82,20 @@ window.addEventListener("load", () => {
             passwordModal.style.display = "none";
             mainContent.classList.remove("hidden");
             passwordError.classList.add("hidden");
-            
+
             // Initialize cart functionality
             initializeCart();
-            
+
             // Initialize the application
             populateTable();
-            
+
             // Initialize filter panel
             initializeFilterPanel();
-            
+
             // Add currency change listener
-            document.getElementById("currency").addEventListener("change", changeCurrency);
+            document
+                .getElementById("currency")
+                .addEventListener("change", changeCurrency);
         } else {
             passwordError.classList.remove("hidden");
         }
@@ -101,7 +116,9 @@ function initializeApp() {
     // Initialize filter panel functionality
     initializeFilterPanel();
 
-    document.getElementById("currency").addEventListener("change", changeCurrency);
+    document
+        .getElementById("currency")
+        .addEventListener("change", changeCurrency);
 
     // Clear order button in header
     const clearOrderBtn = document.getElementById("clearOrderBtn");
@@ -133,56 +150,62 @@ function initializeApp() {
 }
 
 function initializeFilterPanel() {
-    const filterButton = document.getElementById('filterButton');
-    console.log('Filter button:', filterButton);
-    const filterPanel = document.getElementById('filterPanel');
-    console.log('Filter panel:', filterPanel);
-    const filterOverlay = document.getElementById('filterOverlay');
-    const closeFilterButton = document.getElementById('closeFilterButton');
-    const sortSelect = document.getElementById('sort');
-    const resetCategoriesButton = document.getElementById('resetCategories');
+    const filterButton = document.getElementById("filterButton");
+    console.log("Filter button:", filterButton);
+    const filterPanel = document.getElementById("filterPanel");
+    console.log("Filter panel:", filterPanel);
+    const filterOverlay = document.getElementById("filterOverlay");
+    const closeFilterButton = document.getElementById("closeFilterButton");
+    const sortSelect = document.getElementById("sort");
+    const resetCategoriesButton = document.getElementById("resetCategories");
 
-    if (!filterButton || !filterPanel || !filterOverlay || !closeFilterButton || !sortSelect) {
-        console.error('Some filter elements are missing:', {
+    if (
+        !filterButton ||
+        !filterPanel ||
+        !filterOverlay ||
+        !closeFilterButton ||
+        !sortSelect
+    ) {
+        console.error("Some filter elements are missing:", {
             filterButton,
             filterPanel,
             filterOverlay,
             closeFilterButton,
-            sortSelect
+            sortSelect,
         });
         return;
     }
 
     // Open filter panel
-    filterButton.addEventListener('click', (e) => {
-        console.log('Filter button clicked');
+    filterButton.addEventListener("click", (e) => {
+        console.log("Filter button clicked");
         e.preventDefault();
-        filterPanel.classList.add('open');
-        filterOverlay.classList.add('open');
+        filterPanel.classList.add("open");
+        filterOverlay.classList.add("open");
     });
 
     // Close filter panel
     const closeFilterPanel = () => {
-        filterPanel.classList.remove('open');
-        filterOverlay.classList.remove('open');
+        filterPanel.classList.remove("open");
+        filterOverlay.classList.remove("open");
     };
 
-    closeFilterButton.addEventListener('click', closeFilterPanel);
-    filterOverlay.addEventListener('click', closeFilterPanel);
+    closeFilterButton.addEventListener("click", closeFilterPanel);
+    filterOverlay.addEventListener("click", closeFilterPanel);
 
     // Handle sorting
-    sortSelect.addEventListener('change', () => {
+    sortSelect.addEventListener("change", () => {
         sortAndDisplayProducts();
     });
 
     // Handle reset categories
     if (resetCategoriesButton) {
-        resetCategoriesButton.addEventListener('click', resetCategories);
+        resetCategoriesButton.addEventListener("click", resetCategories);
     }
 }
 
 // Initialize cart when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
     initializeCart();
     updateCartCount();
 });
@@ -195,7 +218,7 @@ function updateCartCount() {
 }
 
 // Add event listener for input changes to update cart badge
-document.addEventListener('input', (e) => {
+document.addEventListener("input", (e) => {
     if (e.target.matches('input[type="number"]')) {
         updateCartCount();
         updateOrderSummary(currentCurrency);
@@ -205,7 +228,7 @@ document.addEventListener('input', (e) => {
 async function populateTable() {
     const loadingElement = document.getElementById("loading");
     const mainContent = document.getElementById("mainContent");
-    
+
     if (!loadingElement || !mainContent) {
         console.error("Required elements not found");
         return;
@@ -214,7 +237,7 @@ async function populateTable() {
     try {
         console.log("Starting data loading...");
         loadingElement.textContent = "Načítání dat...";
-        
+
         // 1. Fetch all categories
         const categories = await fetchCategories();
         console.log("Categories loaded:", categories);
@@ -237,24 +260,24 @@ async function populateTable() {
         }
 
         // Clear existing tables
-        tablesContainer.innerHTML = '';
+        tablesContainer.innerHTML = "";
 
         for (const category of categories) {
             const categoryId = category.category_id;
             const categoryName = category.name;
-            
+
             // Get products for this category
             const categoryProducts = categorizedProducts[categoryId] || {};
-            
+
             // Skip empty categories
             if (Object.keys(categoryProducts).length === 0) {
                 continue;
             }
-            
+
             // Create table container
-            let tableContainer = document.createElement('div');
+            let tableContainer = document.createElement("div");
             tableContainer.id = `category_${categoryId}`;
-            tableContainer.className = 'category-container';
+            tableContainer.className = "category-container";
             tableContainer.innerHTML = `
                 <div class="category-header">
                     <h2 class="text-xl font-bold">${categoryName}</h2>
@@ -271,23 +294,37 @@ async function populateTable() {
             tablesContainer.appendChild(tableContainer);
 
             // Filter products with stock
-            allProducts[categoryId] = Object.entries(categoryProducts).filter(([, product]) => {
-                if (product.variants && Object.keys(product.variants).length > 0) {
-                    return Object.values(product.variants).some(
-                        (variant) => Object.values(variant.stock)[0] > 0
-                    );
-                }
-                return Object.values(product.stock)[0] > 0;
-            });
+            allProducts[categoryId] = Object.entries(categoryProducts).filter(
+                ([, product]) => {
+                    if (
+                        product.variants &&
+                        Object.keys(product.variants).length > 0
+                    ) {
+                        return Object.values(product.variants).some(
+                            (variant) => Object.values(variant.stock)[0] > 0,
+                        );
+                    }
+                    return Object.values(product.stock)[0] > 0;
+                },
+            );
 
-            const variants = getVariantSizes(Object.fromEntries(allProducts[categoryId]));
-            console.log(`Available variants for category ${categoryName}:`, variants);
+            const variants = getVariantSizes(
+                Object.fromEntries(allProducts[categoryId]),
+            );
+            console.log(
+                `Available variants for category ${categoryName}:`,
+                variants,
+            );
 
             populateTableHeader(`table_${categoryId}`, variants);
             populateProductTable(categoryId, variants);
         }
 
-        if (Object.keys(allProducts).every(catId => allProducts[catId].length === 0)) {
+        if (
+            Object.keys(allProducts).every(
+                (catId) => allProducts[catId].length === 0,
+            )
+        ) {
             loadingElement.textContent = "Žádné produkty k dispozici.";
             return;
         }
@@ -302,13 +339,14 @@ async function populateTable() {
 
         updateOrderSummary(currentCurrency);
         addImageButtonListeners();
-        
+
         // Initialize floating headers
         initFloatingHeaders();
     } catch (error) {
         console.error("Error populating table:", error);
         if (loadingElement) {
-            loadingElement.textContent = "Chyba při načítání dat. Prosím zkuste to znovu později.";
+            loadingElement.textContent =
+                "Chyba při načítání dat. Prosím zkuste to znovu později.";
         }
     }
 }
@@ -322,12 +360,7 @@ function populateProductTable(categoryId, variants) {
 
     products.forEach(([productId, product]) => {
         tbody.appendChild(
-            createRow(
-                productId,
-                product,
-                variants,
-                currentCurrency,
-            )
+            createRow(productId, product, variants, currentCurrency),
         );
     });
 
@@ -338,18 +371,24 @@ function sortAndDisplayProducts() {
     const sortValue = document.getElementById("sort").value;
 
     // Sort products in each category
-    Object.keys(allProducts).forEach(categoryId => {
+    Object.keys(allProducts).forEach((categoryId) => {
         allProducts[categoryId].sort(([, a], [, b]) => {
             if (sortValue === "name") {
-                return (a.text_fields.name || "").localeCompare(b.text_fields.name || "");
+                return (a.text_fields.name || "").localeCompare(
+                    b.text_fields.name || "",
+                );
             } else if (sortValue === "priceAsc" || sortValue === "priceDesc") {
                 const priceA = getPrice(a.prices, true, currentCurrency);
                 const priceB = getPrice(b.prices, true, currentCurrency);
-                return sortValue === "priceAsc" ? priceA - priceB : priceB - priceA;
+                return sortValue === "priceAsc"
+                    ? priceA - priceB
+                    : priceB - priceA;
             }
         });
 
-        const variants = getVariantSizes(Object.fromEntries(allProducts[categoryId]));
+        const variants = getVariantSizes(
+            Object.fromEntries(allProducts[categoryId]),
+        );
         populateProductTable(categoryId, variants);
     });
 }
@@ -502,7 +541,7 @@ function showOrderPreview() {
     `;
 
     updateModalTotals();
-    
+
     // Show the modal
     modal.style.display = "flex";
 }
@@ -511,7 +550,11 @@ function showOrderPreview() {
 function updateModalTotals() {
     const orderData = gatherOrderData();
     const vatRate = getVATRate(orderData.country, orderData.isVatRegistered);
-    const vatAmount = calculateVAT(orderData.totalPrice, orderData.country, orderData.isVatRegistered);
+    const vatAmount = calculateVAT(
+        orderData.totalPrice,
+        orderData.country,
+        orderData.isVatRegistered,
+    );
     const totalWithVAT = orderData.totalPrice + vatAmount;
 
     const modalTotalPrice = document.getElementById("modalTotalPrice");
@@ -519,10 +562,20 @@ function updateModalTotals() {
     const modalTotalWithVAT = document.getElementById("modalTotalWithVAT");
     const modalTotalQuantity = document.getElementById("modalTotalQuantity");
 
-    if (modalTotalPrice) modalTotalPrice.textContent = formatPrice(orderData.totalPrice, currentCurrency);
-    if (modalVatAmount) modalVatAmount.textContent = `${(vatRate * 100).toFixed(0)}% (${formatPrice(vatAmount, currentCurrency)})`;
-    if (modalTotalWithVAT) modalTotalWithVAT.textContent = formatPrice(totalWithVAT, currentCurrency);
-    if (modalTotalQuantity) modalTotalQuantity.textContent = orderData.totalQuantity;
+    if (modalTotalPrice)
+        modalTotalPrice.textContent = formatPrice(
+            orderData.totalPrice,
+            currentCurrency,
+        );
+    if (modalVatAmount)
+        modalVatAmount.textContent = `${(vatRate * 100).toFixed(0)}% (${formatPrice(vatAmount, currentCurrency)})`;
+    if (modalTotalWithVAT)
+        modalTotalWithVAT.textContent = formatPrice(
+            totalWithVAT,
+            currentCurrency,
+        );
+    if (modalTotalQuantity)
+        modalTotalQuantity.textContent = orderData.totalQuantity;
 }
 
 // Make functions available globally
@@ -582,8 +635,12 @@ window.addEventListener("load", () => {
     console.log("Window loaded");
     populateTable();
 
-    document.getElementById("sort").addEventListener("change", sortAndDisplayProducts);
-    document.getElementById("currency").addEventListener("change", changeCurrency);
+    document
+        .getElementById("sort")
+        .addEventListener("change", sortAndDisplayProducts);
+    document
+        .getElementById("currency")
+        .addEventListener("change", changeCurrency);
 
     // Clear order button in header
     const clearOrderBtn = document.getElementById("clearOrderBtn");
@@ -613,7 +670,7 @@ window.addEventListener("load", () => {
         // Email validation
         const emailInput = document.getElementById("email");
         if (emailInput) {
-            emailInput.addEventListener("blur", function() {
+            emailInput.addEventListener("blur", function () {
                 if (!validateEmail(this.value)) {
                     this.classList.add("border-red-500");
                     alert("Prosím zadejte platný email.");
@@ -626,10 +683,12 @@ window.addEventListener("load", () => {
         // Phone validation
         const phoneInput = document.getElementById("phone");
         if (phoneInput) {
-            phoneInput.addEventListener("blur", function() {
+            phoneInput.addEventListener("blur", function () {
                 if (!validatePhoneNumber(this.value)) {
                     this.classList.add("border-red-500");
-                    alert("Prosím zadejte platné telefonní číslo (minimálně 9 číslic, povolené znaky: +, -, (, )).");
+                    alert(
+                        "Prosím zadejte platné telefonní číslo (minimálně 9 číslic, povolené znaky: +, -, (, )).",
+                    );
                 } else {
                     this.classList.remove("border-red-500");
                 }

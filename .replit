@@ -23,3 +23,6 @@ externalPort = 80
 [auth]
 pageEnabled = false
 buttonEnabled = false
+
+[agent]
+expertMode = true
